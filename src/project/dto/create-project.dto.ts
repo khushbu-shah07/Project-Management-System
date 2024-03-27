@@ -8,9 +8,11 @@ export class CreateProjectDto {
   @IsString()
   description: string;
 
+  @IsNotEmpty()
   @IsDate()
   deadline: Date;
 
+  @IsNotEmpty()
   @IsNumber()
   pm_id: number;
 }
