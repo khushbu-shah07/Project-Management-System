@@ -1,33 +1,40 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { UserRole } from "../dto/user.role.enum";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Index } from "typeorm";
+import { Project } from "src/project/entities/project.entity";
+
+enum UserRole {
+  ADMIN = 'admin',
+  EMPLOYEE = 'employee',
+  PM = 'pm'
+}
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id:number
+  id: number
 
-  @Column({nullable:false})
-  name:string
+  @Column({
+    nullable: false
+  })
+  name: string
 
-  @Column({nullable:false,unique:true})
-  email:string
+  @Column({
+    nullable: false
+  })
+  @Index({ unique: true })
+  email: string
 
-  @Column({nullable:false})
-  password:string
+  @Column({
+    nullable: false
+  })
+  password: string
 
   @Column({
     type: 'enum',
     enum: UserRole,
-    nullable:false
-})
+    nullable: false
+  })
   role: UserRole;
 
-    @CreateDateColumn()
-    createdDate: Date
-
-    @UpdateDateColumn()
-    updatedDate: Date
-
-    @DeleteDateColumn()
-    deletedDate: Date
+  @OneToMany(() => Project, (project) => project.pm_id)
+  projects: Project[]
 }
