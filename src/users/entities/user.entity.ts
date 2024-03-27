@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Index } from "typeorm";
+import { Project } from "src/project/entities/project.entity";
 
 enum UserRole {
   ADMIN = 'admin',
@@ -9,20 +10,31 @@ enum UserRole {
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id:number
+  id: number
 
-  @Column()
-  name:string
+  @Column({
+    nullable: false
+  })
+  name: string
 
-  @Column()
-  email:string
+  @Column({
+    nullable: false
+  })
+  @Index({ unique: true })
+  email: string
 
-  @Column()
-  password:string
+  @Column({
+    nullable: false
+  })
+  password: string
 
   @Column({
     type: 'enum',
     enum: UserRole,
-})
-role: UserRole;
+    nullable: false
+  })
+  role: UserRole;
+
+  @OneToMany(() => Project, (project) => project.pm_id)
+  projects: Project[]
 }
