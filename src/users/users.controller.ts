@@ -1,20 +1,32 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Request, Response } from 'express';
+import { httpStatusCodes,sendResponse } from './utils/sendresponse';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto, @Req() req:Request ,@Res() res:Response) {
+    try {
+      const user = await this.usersService.create(createUserDto)
+      return sendResponse(res,httpStatusCodes.Created,"success","Create User",user)
+    } catch (error) {
+      throw new BadRequestException("Error in create User" , error.message)
+    }
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll(@Req() req:Request ,@Res() res:Response) {
+    try {
+      const users = await this.usersService.findAll()
+      return sendResponse(res,httpStatusCodes.Created,"success","Create User",users)
+    } catch (error) {
+      throw new BadRequestException("Error in FindAll User",error.message)
+    }
   }
 
   @Get(':id')
