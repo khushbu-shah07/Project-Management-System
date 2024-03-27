@@ -30,15 +30,38 @@ export class UsersService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) : Promise<User>{
+    try {
+      const user = await this.userRepository.findOne({where:{id:id}})
+      return user
+    } catch (error) {
+      throw new BadRequestException(error.message)
+    };
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto):Promise<User> {
+   try {
+    const update = await this.userRepository.update({ id }, updateUserDto);
+      if (update.affected === 0) {
+        throw new BadRequestException('No User With The given ID');
+      }
+      const user = await this.userRepository.findOneBy({ id });
+      return user;
+   } catch (error) {
+    throw new BadRequestException(error.message)
+    
+   }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: number) :Promise<Number>{
+    try {
+      const deleted = await this.userRepository.delete({ id });
+      if(deleted.affected === 0){
+        throw new BadRequestException("No User With The Given ID")
+      }
+      return deleted.affected
+    } catch (error) {
+      throw new BadRequestException(error.message)
+    }
   }
 }

@@ -23,24 +23,39 @@ export class UsersController {
   async findAll(@Req() req:Request ,@Res() res:Response) {
     try {
       const users = await this.usersService.findAll()
-      return sendResponse(res,httpStatusCodes.Created,"success","Create User",users)
+      return sendResponse(res,httpStatusCodes.OK,"success","Create User",users)
     } catch (error) {
       throw new BadRequestException("Error in FindAll User",error.message)
     }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id') id: string,@Req() req:Request ,@Res() res:Response) {
+    try {
+      const user = await this.usersService.findOne(+id)
+      return sendResponse(res,httpStatusCodes.OK,"success","Get Single User",user)
+    } catch (error) {
+      throw new BadRequestException("Error in Get Single User",error.message)
+    }
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto,@Req() req:Request ,@Res() res:Response) {
+    try {
+      const user = await this.usersService.update(+id,updateUserDto)
+      return sendResponse(res,httpStatusCodes.OK,"success","Update User",user)
+    } catch (error) {
+      throw new BadRequestException("Error in Update User",error.message);
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async remove(@Param('id') id: string,@Req() req:Request ,@Res() res:Response) {
+    try {
+      const data = await this.usersService.remove(+id)
+      return sendResponse(res,httpStatusCodes.OK,"success","Delete User",{deletedUser:data})
+    } catch (error) {
+      throw new BadRequestException("Error in delete User",error.message)
+    }
   }
 }
