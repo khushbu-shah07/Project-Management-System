@@ -42,20 +42,21 @@ export class UsersController {
     }
   }
   @UseGuards(AuthGuard)
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto,@Req() req:Request ,@Res() res:Response) {
-    try {
-      const user = await this.usersService.update(+id,updateUserDto)
+  @Patch()
+  async update(@Body() updateUserDto: UpdateUserDto,@Req() req:Request ,@Res() res:Response) {
+    try { 
+      const user = await this.usersService.update(req['user'].id,updateUserDto)
       return sendResponse(res,httpStatusCodes.OK,"success","Update User",user)
     } catch (error) {
       throw new BadRequestException("Error in Update User",error.message);
     }
   }
   @UseGuards(AuthGuard)
-  @Delete(':id')
-  async remove(@Param('id') id: string,@Req() req:Request ,@Res() res:Response) {
+  @Delete()
+  async remove(@Req() req:Request ,@Res() res:Response) {
     try {
-      const data = await this.usersService.remove(+id)
+      console.log(req['user']);
+      const data = await this.usersService.remove(req['user'].id)
       return sendResponse(res,httpStatusCodes.OK,"success","Delete User",{deletedUser:data})
     } catch (error) {
       throw new BadRequestException("Error in delete User",error.message)
