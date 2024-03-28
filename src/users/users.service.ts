@@ -1,23 +1,34 @@
-import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Injectable, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { AdminGuard } from './role-guard/admin.guard';
 
 @Injectable()
 export class UsersService {
 
   constructor(@InjectRepository(User) private userRepository:Repository<User>){}
 
-  async create(createUserDto: CreateUserDto):Promise<User> {
+  private async hashPassword(password: string): Promise<string> {
+    const Rounds = 10;
+    const hash = await bcrypt.hash(password, Rounds);
+    return hash;
+  }
+
+  async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const user = this.userRepository.create(createUserDto)
-      await this.userRepository.save(user)
-      return user
+      const { name, email, role } = createUserDto;
+      const password = await this.hashPassword(createUserDto.password);
+      const user = this.userRepository.create({ name, email, password, role });
+      await this.userRepository.save(user);
+      delete user.password; 
+      return user;
     } catch (error) {
-      throw new BadRequestException(error.message)
-      
+      throw new BadRequestException(error.message);
     }
   }
 
@@ -37,6 +48,16 @@ export class UsersService {
     } catch (error) {
       throw new BadRequestException(error.message)
     };
+  }
+
+  async findByEmail(email:string):Promise<User>{
+    try {
+      const user = await this.userRepository.findOne({where:{email:email}})
+      return user
+    } catch (error) {
+      throw new BadRequestException(error.message)
+      
+    }
   }
 
   async update(id: number, updateUserDto: UpdateUserDto):Promise<User> {
