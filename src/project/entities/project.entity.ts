@@ -4,7 +4,7 @@ import { User } from 'src/users/entities/user.entity'
 @Entity()
 export class Project {
   @PrimaryGeneratedColumn()
-  id: number
+  readonly id: number
 
   @Column({ nullable: false })
   name: string
@@ -15,15 +15,15 @@ export class Project {
   @Column({ nullable: false })
   deadline: Date
 
-  @ManyToOne(() => User, (user) => user.projects)
-  pm_id: User
+  @ManyToOne(() => User, (user) => user.projects, { nullable: false })
+  readonly pm_id: User
 
   @CreateDateColumn({ nullable: false })
-  created_at: Date
+  readonly created_at: Date
 
   @UpdateDateColumn()
-  updated_at: Date
+  readonly updated_at: Date
 
   @DeleteDateColumn()
-  deleted_at: Date
+  readonly deleted_at: Date
 }
