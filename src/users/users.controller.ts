@@ -1,34 +1,64 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, BadRequestException, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Request, Response } from 'express';
+import { httpStatusCodes,sendResponse } from "../../utils/sendresponse";
+import { AuthGuard } from 'src/auth/auth.guard';
+import { AdminGuard } from './role-guard/admin.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto, @Req() req:Request ,@Res() res:Response) {
+    try {
+      const user = await this.usersService.create(createUserDto)
+      return sendResponse(res,httpStatusCodes.Created,"success","Create User",user)
+    } catch (error) {
+      throw new BadRequestException("Error in create User" , error.message)
+    }
   }
-
+ 
+  @UseGuards(AuthGuard,AdminGuard)
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll(@Req() req:Request ,@Res() res:Response) {
+    try {
+      const users = await this.usersService.findAll()
+      return sendResponse(res,httpStatusCodes.OK,"success","Get All User",users)
+    } catch (error) {
+      throw new BadRequestException("Error in FindAll User",error.message)
+    }
   }
-
+  @UseGuards(AuthGuard,AdminGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id') id: string,@Req() req:Request ,@Res() res:Response) {
+    try {
+      const user = await this.usersService.findOne(+id)
+      return sendResponse(res,httpStatusCodes.OK,"success","Get Single User",user)
+    } catch (error) {
+      throw new BadRequestException("Error in Get Single User",error.message)
+    }
   }
-
+  @UseGuards(AuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto,@Req() req:Request ,@Res() res:Response) {
+    try {
+      const user = await this.usersService.update(+id,updateUserDto)
+      return sendResponse(res,httpStatusCodes.OK,"success","Update User",user)
+    } catch (error) {
+      throw new BadRequestException("Error in Update User",error.message);
+    }
   }
-
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async remove(@Param('id') id: string,@Req() req:Request ,@Res() res:Response) {
+    try {
+      const data = await this.usersService.remove(+id)
+      return sendResponse(res,httpStatusCodes.OK,"success","Delete User",{deletedUser:data})
+    } catch (error) {
+      throw new BadRequestException("Error in delete User",error.message)
+    }
   }
 }
