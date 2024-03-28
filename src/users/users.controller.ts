@@ -3,7 +3,7 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Request, Response } from 'express';
-import { httpStatusCodes,sendResponse } from './utils/sendresponse';
+import { httpStatusCodes,sendResponse } from "../../utils/sendresponse";
 import { AuthGuard } from 'src/auth/auth.guard';
 import { AdminGuard } from './role-guard/admin.guard';
 

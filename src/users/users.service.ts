@@ -70,7 +70,6 @@ export class UsersService {
       return user;
    } catch (error) {
     throw new BadRequestException(error.message)
-    
    }
   }
 
