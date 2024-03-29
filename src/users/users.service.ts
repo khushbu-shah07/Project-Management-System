@@ -5,13 +5,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { AdminGuard } from './role-guard/admin.guard';
+import { AuthGuard } from 'src/auth/Guards/auth.guard';
+import { AdminGuard } from '../auth/Guards/admin.guard';
 
 @Injectable()
 export class UsersService {
 
-  constructor(@InjectRepository(User) private userRepository:Repository<User>){}
+  constructor(@InjectRepository(User) private userRepository: Repository<User>) { }
 
   private async hashPassword(password: string): Promise<string> {
     const Rounds = 10;
@@ -25,14 +25,14 @@ export class UsersService {
       const password = await this.hashPassword(createUserDto.password);
       const user = this.userRepository.create({ name, email, password, role });
       await this.userRepository.save(user);
-      delete user.password; 
+      delete user.password;
       return user;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
 
-  async findAll() :Promise<User[]> {
+  async findAll(): Promise<User[]> {
     try {
       const users = await this.userRepository.find()
       return users;
@@ -41,10 +41,10 @@ export class UsersService {
     }
   }
 
-  async findOne(id: number) : Promise<User>{
+  async findOne(id: number): Promise<User> {
     try {
-      const user = await this.userRepository.findOne({where:{id:id}})
-      if(user === null || user === undefined){
+      const user = await this.userRepository.findOne({ where: { id: id } })
+      if (user === null || user === undefined) {
         throw new BadRequestException("No User With the given ID")
       }
       return user
@@ -53,36 +53,36 @@ export class UsersService {
     };
   }
 
-  async findByEmail(email:string):Promise<User>{
+  async findByEmail(email: string): Promise<User> {
     try {
-      const user = await this.userRepository.findOne({where:{email:email}})
+      const user = await this.userRepository.findOne({ where: { email: email } })
       return user
     } catch (error) {
       throw new BadRequestException(error.message)
     }
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto):Promise<User> {
-   try {
-    if(updateUserDto.password!==undefined){
-      const password = await this.hashPassword(updateUserDto.password);
-      updateUserDto.password = password
-    }
-    const update = await this.userRepository.update({ id }, updateUserDto);
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+    try {
+      if (updateUserDto.password !== undefined) {
+        const password = await this.hashPassword(updateUserDto.password);
+        updateUserDto.password = password
+      }
+      const update = await this.userRepository.update({ id }, updateUserDto);
       if (update.affected === 0) {
         throw new BadRequestException('No User With The given ID');
       }
       const user = await this.userRepository.findOneBy({ id });
       return user;
-   } catch (error) {
-    throw new BadRequestException(error.message)
-   }
+    } catch (error) {
+      throw new BadRequestException(error.message)
+    }
   }
 
-  async remove(id: number) :Promise<Number>{
+  async remove(id: number): Promise<Number> {
     try {
       const deleted = await this.userRepository.softDelete({ id });
-      if(deleted.affected === 0){
+      if (deleted.affected === 0) {
         throw new BadRequestException("No User With The Given ID")
       }
       return deleted.affected
