@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 
 @Injectable()
 export class ProjectManagerGuard implements CanActivate {
@@ -13,7 +13,7 @@ export class ProjectManagerGuard implements CanActivate {
         return true;
      }
      else{
-        throw new UnauthorizedException('only project manager has access');
+        throw new ForbiddenException('only project manager has access');
      }
   }
 }
