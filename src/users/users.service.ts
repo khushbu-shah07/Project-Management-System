@@ -44,6 +44,9 @@ export class UsersService {
   async findOne(id: number) : Promise<User>{
     try {
       const user = await this.userRepository.findOne({where:{id:id}})
+      if(user === null || user === undefined){
+        throw new BadRequestException("No User With the given ID")
+      }
       return user
     } catch (error) {
       throw new BadRequestException(error.message)
@@ -56,12 +59,15 @@ export class UsersService {
       return user
     } catch (error) {
       throw new BadRequestException(error.message)
-      
     }
   }
 
   async update(id: number, updateUserDto: UpdateUserDto):Promise<User> {
    try {
+    if(updateUserDto.password!==undefined){
+      const password = await this.hashPassword(updateUserDto.password);
+      updateUserDto.password = password
+    }
     const update = await this.userRepository.update({ id }, updateUserDto);
       if (update.affected === 0) {
         throw new BadRequestException('No User With The given ID');
@@ -75,7 +81,7 @@ export class UsersService {
 
   async remove(id: number) :Promise<Number>{
     try {
-      const deleted = await this.userRepository.delete({ id });
+      const deleted = await this.userRepository.softDelete({ id });
       if(deleted.affected === 0){
         throw new BadRequestException("No User With The Given ID")
       }
