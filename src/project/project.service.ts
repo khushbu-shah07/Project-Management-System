@@ -44,20 +44,8 @@ export class ProjectService {
   }
 
   async update(id: number, projectData: UpdateProjectDto) {
-    let dataToUpdate: {
-      name?: string,
-      deadline?: Date,
-      description?: string
-    } = {};
-
-    if (projectData.name) dataToUpdate.name = projectData.name;
-    if (projectData.deadline) dataToUpdate.deadline = projectData.deadline;
-    if (projectData.description) dataToUpdate.description = projectData.description;
-
     try {
-      if (!dataToUpdate.name && !dataToUpdate.deadline && !dataToUpdate.description) throw new Error('Please provide a valid field to update')
-
-      const project = await this.projectRepository.update({ id }, dataToUpdate as unknown as Partial<Project>);
+      const project = await this.projectRepository.update({ id }, projectData as unknown as Project);
 
       if (project.affected === 0) throw new Error('Project with given id does not exists')
     } catch (error) {
@@ -67,7 +55,7 @@ export class ProjectService {
 
   async remove(id: number) {
     try {
-      const data = await this.projectRepository.delete({ id })
+      const data = await this.projectRepository.softDelete({ id })
       if (data.affected === 0) throw new Error('Project with given id does not exists');
 
       return { message: 'Project with given id deleted successfully!' }
