@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Index, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from "typeorm";
 import { Project } from "src/project/entities/project.entity";
+import { Exclude } from "class-transformer";
 
 enum UserRole {
   ADMIN = 'admin',
@@ -26,6 +27,7 @@ export class User {
   @Column({
     nullable: false
   })
+  @Exclude()
   password: string
 
   @Column({

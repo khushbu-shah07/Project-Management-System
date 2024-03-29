@@ -39,7 +39,7 @@ export class Project {
   @Column({ nullable: false })
   clientEmail: string
 
-  @ManyToOne(() => User, (user) => user.projects, { nullable: false, cascade: true })
+  @ManyToOne(() => User, (user) => user.projects, { nullable: false, cascade: true, eager: true })
   readonly pm_id: User
 
   @CreateDateColumn({ nullable: false })

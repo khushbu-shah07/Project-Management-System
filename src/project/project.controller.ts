@@ -10,19 +10,22 @@ import {
   Res,
   BadRequestException,
   UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { Request, Response } from 'express';
-import { ProjectManagerGuard } from 'src/users/role-guard/pm.guard';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { AdminGuard } from 'src/users/role-guard/admin.guard';
+import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
+import { AuthGuard } from 'src/auth/Guards/auth.guard';
+import { AdminGuard } from 'src/auth/Guards/admin.guard';
+import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
+
 
 @Controller('projects')
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(private readonly projectService: ProjectService) { }
 
   @UseGuards(AuthGuard, ProjectManagerGuard)
   @Post()
@@ -32,6 +35,11 @@ export class ProjectController {
     @Res() res: Response,
   ) {
     try {
+      const user = req['user'];
+
+      if (user.id !== createProjectDto.pm_id) {
+        throw new ForbiddenException('Access Denied')
+      }
       const project = await this.projectService.create(createProjectDto);
       return sendResponse(
         res,
@@ -62,15 +70,27 @@ export class ProjectController {
     }
   }
 
-  @UseGuards(AuthGuard, AdminGuard)
-  @Get()
+  @UseGuards(AuthGuard, AdminProjectGuard)
+  @Get(':id')
   async findOne(
     @Param('id') id: string,
     @Req() req: Request,
     @Res() res: Response,
   ) {
     try {
+      const user = req['user'];
       const project = await this.projectService.findOne(+id);
+
+      if(!project) {
+        throw new Error('Project with given id does not exists')
+      }
+
+      if (user?.role === 'pm') {
+        if (!project.pm_id || (user?.id !== project.pm_id.id)) {
+          throw new Error
+        }
+      }
+
       return sendResponse(
         res,
         httpStatusCodes.OK,
@@ -79,10 +99,11 @@ export class ProjectController {
         project,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new ForbiddenException(error.message)
     }
   }
 
+  @UseGuards(AuthGuard, AdminProjectGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -91,6 +112,18 @@ export class ProjectController {
     @Res() res: Response,
   ) {
     try {
+      const user = req['user'];
+      const project = await this.projectService.findOne(+id);
+
+      if(!project) {
+        throw new Error('Project with given id does not exists')
+      }
+
+      if (user?.role === 'pm') {
+        if (!project.pm_id || (user?.id !== project.pm_id.id)) {
+          throw new ForbiddenException('Access Denied')
+        }
+      }
       await this.projectService.update(+id, updateProjectDto);
       return sendResponse(
         res,
@@ -104,6 +137,7 @@ export class ProjectController {
     }
   }
 
+  @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete(':id')
   async remove(
     @Param('id') id: string,
@@ -111,6 +145,18 @@ export class ProjectController {
     @Res() res: Response,
   ) {
     try {
+      const user = req['user'];
+      const project = await this.projectService.findOne(+id);
+
+      if(!project) {
+        throw new Error('Project with given id does not exists')
+      }
+
+      if (user?.role === 'pm') {
+        if (!project.pm_id || (user?.id !== project.pm_id.id)) {
+          throw new ForbiddenException('Access Denied')
+        }
+      }
       await this.projectService.remove(+id);
       return sendResponse(
         res,
