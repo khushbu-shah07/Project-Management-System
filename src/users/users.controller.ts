@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { httpStatusCodes,sendResponse } from "../../utils/sendresponse";
 import { AuthGuard } from 'src/auth/auth.guard';
 import { AdminGuard } from './role-guard/admin.guard';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -42,21 +43,32 @@ export class UsersController {
     }
   }
   @UseGuards(AuthGuard)
-  @Patch()
-  async update(@Body() updateUserDto: UpdateUserDto,@Req() req:Request ,@Res() res:Response) {
-    try { 
-      const user = await this.usersService.update(req['user'].id,updateUserDto)
-      return sendResponse(res,httpStatusCodes.OK,"success","Update User",user)
+  @Patch(':id')
+  async update(@Param("id") id:string,@Body() updateUserDto: UpdateUserDto,@Req() req:Request ,@Res() res:Response) {
+    try {
+      let data:User
+      if(req['user'].role === 'admin'){
+        data = await this.usersService.update(+id,updateUserDto)
+      }
+      else{
+        data = await this.usersService.update(req['user'].id,updateUserDto)
+      } 
+      return sendResponse(res,httpStatusCodes.OK,"success","Update User",data)
     } catch (error) {
       throw new BadRequestException("Error in Update User",error.message);
     }
   }
   @UseGuards(AuthGuard)
-  @Delete()
-  async remove(@Req() req:Request ,@Res() res:Response) {
+  @Delete(":id")
+  async remove(@Req() req:Request ,@Res() res:Response,@Param('id') id:string) {
     try {
-      console.log(req['user']);
-      const data = await this.usersService.remove(req['user'].id)
+      let data:Number;
+      if(req['user'].role === 'admin'){
+        data = await this.usersService.remove(+id)
+      }
+      else{
+        data = await this.usersService.remove(req['user'].id)
+      }  
       return sendResponse(res,httpStatusCodes.OK,"success","Delete User",{deletedUser:data})
     } catch (error) {
       throw new BadRequestException("Error in delete User",error.message)

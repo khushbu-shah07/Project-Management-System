@@ -81,7 +81,7 @@ export class UsersService {
 
   async remove(id: number) :Promise<Number>{
     try {
-      const deleted = await this.userRepository.delete({ id });
+      const deleted = await this.userRepository.softDelete({ id });
       if(deleted.affected === 0){
         throw new BadRequestException("No User With The Given ID")
       }
