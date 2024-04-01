@@ -10,12 +10,10 @@ import { Team } from './entities/team.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm/repository/Repository';
 import { TeamUser } from './entities/team-user.entity';
+import { CreateTeamUserDto } from './dto/create-team-user.dto';
 
 @Injectable()
 export class TeamService {
-  find(arg0: number) {
-    throw new Error('Method not implemented.');
-  }
   constructor(
     @InjectRepository(Team) private readonly teamRepository: Repository<Team>,
     @InjectRepository(TeamUser)
@@ -73,6 +71,63 @@ export class TeamService {
       return { message: 'Team with given Id deleted' };
     } catch (error) {
       throw new NotFoundException(error.message);
+    }
+  }
+
+  async findUserInTeam(team_id: number, user_id: number) {
+    try {
+      const teamUser = await this.teamUserRepository
+        .createQueryBuilder('tu')
+        .where('tu.team_id = :teamId', { teamId: team_id })
+        .andWhere('tu.user_id= :userId', { userId: user_id })
+        .getCount();
+      return teamUser;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+  async addUserToTeam(teamUserData: CreateTeamUserDto) {
+    try {
+      const isExists = await this.findUserInTeam(
+        teamUserData.team_id,
+        teamUserData.user_id,
+      );
+      if (isExists > 0) throw new Error('User already exists in the team');
+      const teamUser = await this.teamUserRepository.create(
+        teamUserData as unknown as TeamUser,
+      );
+      await this.teamUserRepository.save(teamUser);
+      return teamUser;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async findAllTeamUsers(team_id: number) {
+    try {
+      const teamUsers = await this.teamUserRepository.find({
+        where: {
+          team_id: team_id,
+        },
+      });
+      return teamUsers;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async removeUserFromTeam(teamUserData: CreateTeamUserDto) {
+    try {
+      const deletedUser = await this.teamUserRepository
+        .createQueryBuilder('')
+        .delete()
+        .where('team_id = :teamId', { teamId: teamUserData.team_id })
+        .andWhere('user_id= :userId', { userId: teamUserData.user_id })
+        .execute();
+      if (deletedUser.affected === 0)
+        throw new Error('User does not exists in this team');
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
   }
 }

@@ -16,7 +16,6 @@ export class Team {
   @ManyToOne(() => Project, (project) => project.teams, {
     nullable: false,
     cascade: true,
-    eager: true,
   })
   project_id: number;
 
