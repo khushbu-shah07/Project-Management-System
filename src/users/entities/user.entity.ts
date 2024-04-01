@@ -1,6 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Index, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from "typeorm";
 import { Project } from "src/project/entities/project.entity";
 import { Exclude } from "class-transformer";
+import { DepartmentUser } from "src/department/entities/department-user.entity";
 
 enum UserRole {
   ADMIN = 'admin',
@@ -39,6 +40,9 @@ export class User {
 
   @OneToMany(() => Project, (project) => project.pm_id)
   projects: Project[]
+
+  @OneToMany(() => DepartmentUser, (department) => department.user_id)
+  departments: DepartmentUser[]
 
   @CreateDateColumn({ nullable: false })
   readonly created_at: Date
