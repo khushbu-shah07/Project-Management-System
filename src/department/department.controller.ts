@@ -6,12 +6,13 @@ import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { Request, Response } from 'express';
 import { CreateDepartmentUserDto } from './dto/create-department-user.dto';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
+import { AuthGuard } from 'src/auth/Guards/auth.guard';
 
 @Controller('departments')
 export class DepartmentController {
   constructor(private readonly departmentService: DepartmentService) { }
 
-  @UseGuards(AdminGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   @Post()
   async create(
     @Body() createDepartmentDto: CreateDepartmentDto,
@@ -71,7 +72,7 @@ export class DepartmentController {
     }
   }
 
-  @UseGuards(AdminGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -93,7 +94,7 @@ export class DepartmentController {
     }
   }
 
-  @UseGuards(AdminGuard)
+  @UseGuards(AuthGuard ,AdminGuard)
   @Delete('/users')
   async removeUserFromDepartment(
     @Body() departmentUserData: CreateDepartmentUserDto,
@@ -114,7 +115,7 @@ export class DepartmentController {
     }
   }
 
-  @UseGuards(AdminGuard)
+  @UseGuards(AuthGuard ,AdminGuard)
   @Post('/users')
   async addUserToDepartment(
     @Body() departmentUserData: CreateDepartmentUserDto,
@@ -155,7 +156,7 @@ export class DepartmentController {
     }
   }
 
-  @UseGuards(AdminGuard)
+  @UseGuards(AuthGuard ,AdminGuard)
   @Delete(':id')
   async remove(
     @Param('id') id: string,
