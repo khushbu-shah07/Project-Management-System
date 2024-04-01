@@ -1,53 +1,70 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne } from 'typeorm'
-import { User } from 'src/users/entities/user.entity'
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
+import { Team } from 'src/team/entities/team.entity';
 
 enum ProjectStatus {
   CREATED = 'created',
   IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed'
+  COMPLETED = 'completed',
 }
 @Entity()
 export class Project {
   @PrimaryGeneratedColumn()
-  readonly id: number
+  readonly id: number;
 
   @Column({ nullable: false })
-  name: string
+  name: string;
 
   @Column({ nullable: false })
-  description: string
+  description: string;
 
   @Column({ nullable: false })
-  startDate: Date
+  startDate: Date;
 
   @Column({ nullable: false })
-  expectedEndDate: Date
+  expectedEndDate: Date;
 
   @Column({
-    nullable: true
+    nullable: true,
   })
-  actualEndDate: Date
+  actualEndDate: Date;
 
   @Column({
     type: 'enum',
     enum: ProjectStatus,
     nullable: false,
-    default: ProjectStatus.CREATED
+    default: ProjectStatus.CREATED,
   })
-  status: ProjectStatus
+  status: ProjectStatus;
 
   @Column({ nullable: false })
-  clientEmail: string
+  clientEmail: string;
 
-  @ManyToOne(() => User, (user) => user.projects, { nullable: false, cascade: true, eager: true })
-  readonly pm_id: User
+  @ManyToOne(() => User, (user) => user.projects, {
+    nullable: false,
+    cascade: true,
+    eager: true,
+  })
+  readonly pm_id: User;
+
+  @OneToMany(() => Team, (team) => team.project_id)
+  teams: Team[];
 
   @CreateDateColumn({ nullable: false })
-  readonly created_at: Date
+  readonly created_at: Date;
 
   @UpdateDateColumn()
-  readonly updated_at: Date
+  readonly updated_at: Date;
 
   @DeleteDateColumn()
-  readonly deleted_at: Date
+  readonly deleted_at: Date;
 }
