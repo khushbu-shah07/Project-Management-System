@@ -37,16 +37,16 @@ export class CommentsService {
   
   async findByEmp(emp_id:number){
     try{
-      return this.commentRepository.find(where:{emp_id:emp_id});
+      return this.commentRepository.find({where:{emp_id:emp_id}});
     }
     catch(err){
       throw err;
     }
   }
   
-  async create(emp_id:number,createCommentDto: CreateCommentDto):Promise<Comment> {
+  async create(emp_id:number,createCommentDto: CreateCommentDto) {
     try{
-      const comment=await this.commentRepository.create({emp_id,...CreateCommentDto});
+      const comment=await this.commentRepository.create({emp_id,...createCommentDto});
       await this.commentRepository.save(comment);
 
       return comment;
@@ -58,7 +58,7 @@ export class CommentsService {
 
   async update(id:number,updateCommentDto:UpdateCommentDto){
     try{
-      const {affected} = await this.commentRepository.update({id},updateCommentDto);
+      const {affected} = await this.commentRepository.update({id},{edited:true,...updateCommentDto});
       return affected;
     }
     catch(err){
@@ -68,7 +68,7 @@ export class CommentsService {
 
   async updateWithEmpId(id: number,emp_id:number, updateCommentDto: UpdateCommentDto) {
     try{
-      const {affected}=await this.commentRepository.update({id,emp_id},updateCommentDto);
+      const {affected}=await this.commentRepository.update({id,emp_id},{edited:true,...updateCommentDto});
       return affected;
     }
     catch(err){
