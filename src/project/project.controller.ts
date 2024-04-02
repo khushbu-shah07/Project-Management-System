@@ -11,6 +11,7 @@ import {
   BadRequestException,
   UseGuards,
   ForbiddenException,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -21,6 +22,8 @@ import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
+import { StartDateInterceptor } from './Interceptors/startDateInterceptor';
+import { EndDateInterceptor } from './Interceptors/endDateInterceptor';
 
 
 @Controller('projects')
@@ -28,6 +31,7 @@ export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }
 
   @UseGuards(AuthGuard, ProjectManagerGuard)
+  @UseInterceptors(StartDateInterceptor,EndDateInterceptor)
   @Post()
   async create(
     @Body() createProjectDto: CreateProjectDto,
@@ -104,6 +108,7 @@ export class ProjectController {
   }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
+  @UseInterceptors(StartDateInterceptor,EndDateInterceptor)
   @Patch(':id')
   async update(
     @Param('id') id: string,
