@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
 import { UsersService } from 'src/users/users.service';
+import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
 
 
 @Injectable()
@@ -18,6 +19,7 @@ export class ProjectService {
       console.log(projectData1)
       const project = await this.projectRepository.create(projectData1 as unknown as Project)
       await this.projectRepository.save(project);
+      await sendNotifyEmail("Adarsh","adarshappatel@gmail.com","project-create","task1","pms");
       return project;
     } catch (error) {
       throw new BadRequestException(error.message);

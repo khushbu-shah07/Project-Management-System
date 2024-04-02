@@ -4,6 +4,8 @@ export class TeamSchema1711954291484 implements MigrationInterface {
     name = 'TeamSchema1711954291484'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`CREATE TYPE user_role_enum AS ENUM ('admin', 'pm', 'employee'); `);
+        await queryRunner.query(`CREATE TYPE project_status_enum AS ENUM ('created', 'in_progress', 'completed'); `);
         await queryRunner.query(`CREATE TABLE "department" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "deleted_at" TIMESTAMP, CONSTRAINT "PK_9a2213262c1593bffb581e382f5" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "department_user" ("id" SERIAL NOT NULL, "departmentIdId" integer NOT NULL, "userIdId" integer NOT NULL, CONSTRAINT "PK_9104d98173511557613e7ef99be" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "team" ("id" SERIAL NOT NULL, "deleted_at" TIMESTAMP, "projectIdId" integer NOT NULL, CONSTRAINT "PK_f57d8293406df4af348402e4b74" PRIMARY KEY ("id"))`);
