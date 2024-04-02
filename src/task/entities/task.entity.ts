@@ -2,13 +2,13 @@ import { Project } from "src/project/entities/project.entity";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { TaskUser } from "./task-user.entity";
 
-enum TaskStatus {
+export enum TaskStatus {
   CREATED = "created",
   IN_PROGRESS = "in_progress",
   COMPLETED = "completed"
 }
 
-enum TaskPriority{
+export enum TaskPriority{
   HIGH = "high",
   LOW = "low",
   MEDIUM = "medium",
