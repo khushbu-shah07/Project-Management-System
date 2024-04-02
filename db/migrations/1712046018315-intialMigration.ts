@@ -1,15 +1,13 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialMigration1712035277863 implements MigrationInterface {
-    name = 'InitialMigration1712035277863'
+export class IntialMigration1712046018315 implements MigrationInterface {
+    name = 'IntialMigration1712046018315'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TABLE "team_user" ("id" SERIAL NOT NULL, "teamIdId" integer NOT NULL, "userIdId" integer NOT NULL, CONSTRAINT "PK_add64c4bdc53d926d9c0992bccc" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "team" ("id" SERIAL NOT NULL, "deleted_at" TIMESTAMP, "projectIdId" integer NOT NULL, CONSTRAINT "PK_f57d8293406df4af348402e4b74" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "task_user" ("id" SERIAL NOT NULL, "taskIdId" integer NOT NULL, "userIdId" integer NOT NULL, CONSTRAINT "PK_6ea2c1c13f01b7a383ebbeaebb0" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TYPE "public"."task_status_enum" AS ENUM('created', 'in_progress', 'completed')`);
-        await queryRunner.query(`CREATE TYPE "public"."task_priority_enum" AS ENUM('high', 'low', 'medium', 'none')`);
-        await queryRunner.query(`CREATE TABLE "task" ("id" SERIAL NOT NULL, "title" character varying NOT NULL, "description" character varying NOT NULL, "status" "public"."task_status_enum" NOT NULL, "priority" "public"."task_priority_enum" NOT NULL DEFAULT 'none', "startDate" TIMESTAMP NOT NULL, "expectedEndDate" TIMESTAMP NOT NULL, "actualEndDate" TIMESTAMP NOT NULL, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "deleted_at" TIMESTAMP, "projectIdId" integer, CONSTRAINT "PK_fb213f79ee45060ba925ecd576e" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "task" ("id" SERIAL NOT NULL, "title" character varying NOT NULL, "description" character varying NOT NULL, "status" "public"."task_status_enum" NOT NULL, "priority" "public"."task_priority_enum" NOT NULL DEFAULT 'none', "startDate" TIMESTAMP NOT NULL, "expectedEndDate" TIMESTAMP NOT NULL, "actualEndDate" TIMESTAMP, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "deleted_at" TIMESTAMP, "projectIdId" integer, CONSTRAINT "PK_fb213f79ee45060ba925ecd576e" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "project" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "description" character varying NOT NULL, "startDate" TIMESTAMP NOT NULL, "expectedEndDate" TIMESTAMP NOT NULL, "actualEndDate" TIMESTAMP, "status" "public"."project_status_enum" NOT NULL DEFAULT 'created', "clientEmail" character varying NOT NULL, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "deleted_at" TIMESTAMP, "pmIdId" integer NOT NULL, CONSTRAINT "PK_4d68b1358bb5b766d3e78f32f57" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "department" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "deleted_at" TIMESTAMP, CONSTRAINT "PK_9a2213262c1593bffb581e382f5" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "department_user" ("id" SERIAL NOT NULL, "departmentIdId" integer NOT NULL, "userIdId" integer NOT NULL, CONSTRAINT "PK_9104d98173511557613e7ef99be" PRIMARY KEY ("id"))`);
@@ -42,8 +40,6 @@ export class InitialMigration1712035277863 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE "department"`);
         await queryRunner.query(`DROP TABLE "project"`);
         await queryRunner.query(`DROP TABLE "task"`);
-        await queryRunner.query(`DROP TYPE "public"."task_priority_enum"`);
-        await queryRunner.query(`DROP TYPE "public"."task_status_enum"`);
         await queryRunner.query(`DROP TABLE "task_user"`);
         await queryRunner.query(`DROP TABLE "team"`);
         await queryRunner.query(`DROP TABLE "team_user"`);

@@ -11,5 +11,6 @@ import { StartDateInterceptor } from './Interceptors/startDateInterceptor';
   imports: [TypeOrmModule.forFeature([Project]), UsersModule],
   controllers: [ProjectController],
   providers: [ProjectService,EndDateInterceptor,StartDateInterceptor],
+  exports:[ProjectService]
 })
 export class ProjectModule { }

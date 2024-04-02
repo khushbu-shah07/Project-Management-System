@@ -8,7 +8,7 @@ export enum TaskStatus {
   COMPLETED = "completed"
 }
 
-export enum TaskPriority{
+export enum TaskPriority {
   HIGH = "high",
   LOW = "low",
   MEDIUM = "medium",
@@ -34,27 +34,27 @@ export class Task {
   status: TaskStatus
 
   @Column({
-    type:'enum',
+    type: 'enum',
     enum: TaskPriority,
-    nullable:false,
-    default:TaskPriority.NONE
+    nullable: false,
+    default: TaskPriority.NONE
   })
-  priority:TaskPriority
+  priority: TaskPriority
 
   @Column({ nullable: false })
-  startDate:Date
+  startDate: Date
 
-  @Column({nullable:false})
-  expectedEndDate:Date
+  @Column({ nullable: false })
+  expectedEndDate: Date
 
-  @Column()
-  actualEndDate:Date
+  @Column({ nullable: true })
+  actualEndDate: Date
 
-  @ManyToOne(()=>Project,(project)=>project.tasks)
-  project_id:Project
+  @ManyToOne(() => Project, (project) => project.tasks)
+  project_id: Project
 
-  @OneToMany(()=>TaskUser,(taskUser)=>taskUser.task_id)
-  taskUsers:TaskUser[]
+  @OneToMany(() => TaskUser, (taskUser) => taskUser.task_id)
+  taskUsers: TaskUser[]
 
   @CreateDateColumn({ nullable: false })
   readonly created_at: Date;
