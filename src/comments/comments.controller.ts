@@ -13,7 +13,6 @@ export class CommentsController {
 
   @Get()
   async findAll(@Req() req, @Res() res) {
-    console.log(req.user)
     try{
       const result = await this.commentsService.find({});
       sendResponse(res,httpStatusCodes.OK,'Ok','Get all comments',result);
@@ -41,9 +40,8 @@ export class CommentsController {
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto,@Req() req,@Res() res) {
-    console.log("U",updateCommentDto)
     let affected=await this.commentsService.updateWithEmpId(+id,req.user.id,updateCommentDto);
-    if(affected===0){
+    if(!affected){
       throw new NotFoundException("Comment not found or Comment belongs to other user.");
     }
 

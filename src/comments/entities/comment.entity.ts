@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Task } from "src/task/entities/task.entity";
+import { User } from "src/users/entities/user.entity";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 
 @Entity()
@@ -6,11 +8,11 @@ export class Comment {
     @PrimaryGeneratedColumn()
     id:number;
 
-    @Column({nullable:false})
-    emp_id:number;
+    @ManyToOne(()=>User,(user)=>user.comments)
+    emp_id:User;
 
-    @Column({nullable:false})
-    task_id:number;
+    @ManyToOne(()=>Task,(task)=>task.comments)
+    task_id:Task;
 
     @Column({nullable:false})
     content:string;
