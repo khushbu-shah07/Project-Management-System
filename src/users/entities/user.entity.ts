@@ -24,7 +24,8 @@ export class User {
   readonly email: string
 
   @Column({
-    nullable: false
+    nullable: false,
+    select:false
   })
   password: string
 
