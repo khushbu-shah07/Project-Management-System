@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Team } from 'src/team/entities/team.entity';
+import { Task } from 'src/task/entities/task.entity';
 
 enum ProjectStatus {
   CREATED = 'created',
@@ -58,6 +59,9 @@ export class Project {
 
   @OneToMany(() => Team, (team) => team.project_id)
   teams: Team[];
+
+  @OneToMany(()=>Task,(task)=>task.project_id)
+  tasks:Task[]
 
   @CreateDateColumn({ nullable: false })
   readonly created_at: Date;
