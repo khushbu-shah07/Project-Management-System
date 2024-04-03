@@ -105,6 +105,10 @@ export class TaskService {
 
       const taskUser = await this.taskUserRepository.create(taskUserData as unknown as TaskUser);
       await this.taskUserRepository.save(taskUser);
+
+      await this.taskRepository.update(taskUserData.task_id, {
+        status: TaskStatus.IN_PROGRESS
+      })
       return taskUser;
     } catch (error) {
       throw new BadRequestException(error.message);
