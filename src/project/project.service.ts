@@ -4,15 +4,19 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
+import { UsersService } from 'src/users/users.service';
+
 
 @Injectable()
 export class ProjectService {
 
-  constructor(@InjectRepository(Project) private readonly projectRepository: Repository<Project>) { }
-
+  constructor(@InjectRepository(Project) private readonly projectRepository: Repository<Project>, private readonly userService: UsersService) { }
   async create(projectData: CreateProjectDto) {
     try {
-      const project = await this.projectRepository.create(projectData as unknown as Project)
+      const user = await this.userService.findOne(projectData.pm_id);
+      const projectData1 = { ...projectData, pm_id: user }
+      console.log(projectData1)
+      const project = await this.projectRepository.create(projectData1 as unknown as Project)
       await this.projectRepository.save(project);
       return project;
     } catch (error) {
