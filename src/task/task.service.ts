@@ -25,7 +25,17 @@ export class TaskService {
 
   async findAll() {
     try {
-      const tasks = await this.taskRepository.find();
+      const tasks = await this.taskRepository.find({
+        select: {
+          project_id: {
+            id: true,
+            pm_id: {
+              id: true,
+            }
+          }
+        },
+        relations: ['project_id', 'project_id.pm_id']
+      })
       return tasks;
     } catch (error) {
       throw new InternalServerErrorException(error.message);
@@ -34,9 +44,21 @@ export class TaskService {
 
   async findOne(id: number) {
     try {
-      const task = await this.taskRepository.find({
-        where: { id }
+      const task = await this.taskRepository.findOne({
+        where: { id: id },
+        select: {
+          project_id: {
+            id: true,
+            pm_id: {
+              id: true,
+            }
+          }
+        },
+        relations: ['project_id', 'project_id.pm_id']
       })
+      if (!task) {
+        throw new Error("No Task With Given Id")
+      }
       return task;
     } catch (error) {
       throw new NotFoundException(error.message);
@@ -47,6 +69,7 @@ export class TaskService {
     try {
       const task = await this.taskRepository.update(id, updateTaskDto);
       if (task.affected === 0) throw new Error('Task with given id does not exists');
+      return task.affected
     } catch (error) {
       throw new BadRequestException(error.message);
     }
@@ -56,6 +79,7 @@ export class TaskService {
     try {
       const data = await this.taskRepository.softDelete(id);
       if (data.affected === 0) throw new Error('Task with given id does not exists');
+      return data.affected
     } catch (error) {
       throw new BadRequestException(error.message);
     }
