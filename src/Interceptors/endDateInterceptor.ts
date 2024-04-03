@@ -7,6 +7,7 @@ export class EndDateInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest<Request>()
 
     const eDate = request.body.expectedEndDate;
+    if(eDate){
     const endDate = new Date(eDate)
 
     const sDate = request.body.startDate;
@@ -15,6 +16,7 @@ export class EndDateInterceptor implements NestInterceptor {
     if (!this.validateEndDate(endDate, startDate)) {
       throw new BadRequestException("Invalid End Date")
     }
+  }
 
     return next.handle()
   }
