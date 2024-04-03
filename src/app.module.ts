@@ -11,17 +11,11 @@ import { UsersController } from './users/users.controller';
 import { DepartmentModule } from './department/department.module';
 import { TeamModule } from './team/team.module';
 import { UserprojectModule } from './userproject/userproject.module';
+import { TaskModule } from './task/task.module';
+
 
 @Module({
-  imports: [
-    TypeOrmModule.forRoot(dataSourceOptions),
-    UsersModule,
-    ProjectModule,
-    AuthModule,
-    DepartmentModule,
-    TeamModule,
-    UserprojectModule,
-  ],
+  imports: [ TypeOrmModule.forRoot(dataSourceOptions),UsersModule, ProjectModule,AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule],
   controllers: [AppController],
   providers: [AppService],
 })
