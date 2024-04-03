@@ -1,10 +1,19 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Index, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from "typeorm";
-import { Project } from "src/project/entities/project.entity";
-import { Exclude } from "class-transformer";
-import { DepartmentUser } from "src/department/entities/department-user.entity";
-import { TeamUser } from "src/team/entities/team-user.entity";
-import { TaskUser } from "src/task/entities/task-user.entity";
-import { Userproject } from 'src/userproject/entities/userproject.entity';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  Index,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
+import { Project } from 'src/project/entities/project.entity';
+import { Exclude } from 'class-transformer';
+import { DepartmentUser } from 'src/department/entities/department-user.entity';
+import { TeamUser } from 'src/team/entities/team-user.entity';
+import { TaskUser } from 'src/task/entities/task-user.entity';
+import { Userproject } from 'src/userproject/entities/user-project.entity';
 
 enum UserRole {
   ADMIN = 'admin',
@@ -52,9 +61,9 @@ export class User {
 
   @OneToMany(() => Userproject, (userProject) => userProject.user_id)
   userProjects: Userproject[];
-  
-  @OneToMany(()=>TaskUser,(taskUser)=>taskUser.user_id)
-  tasks:TaskUser[]
+
+  @OneToMany(() => TaskUser, (taskUser) => taskUser.user_id)
+  tasks: TaskUser[];
 
   @CreateDateColumn({ nullable: false })
   readonly created_at: Date;

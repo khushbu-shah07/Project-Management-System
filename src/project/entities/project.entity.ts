@@ -11,8 +11,7 @@ import {
 import { User } from 'src/users/entities/user.entity';
 import { Team } from 'src/team/entities/team.entity';
 import { Task } from 'src/task/entities/task.entity';
-import { Userproject } from 'src/userproject/entities/userproject.entity';
-
+import { Userproject } from 'src/userproject/entities/user-project.entity';
 
 enum ProjectStatus {
   CREATED = 'created',

@@ -1,6 +1,9 @@
-import { JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Project } from 'src/project/entities/project.entity';
+@Entity({
+  name: 'user_project',
+})
 export class Userproject {
   @PrimaryGeneratedColumn()
   id: number;
@@ -8,16 +11,13 @@ export class Userproject {
   @ManyToOne(() => User, (user) => user.userProjects, {
     nullable: false,
     cascade: true,
-    eager: true,
+    eager: true
   })
-  // @JoinColumn({ name: 'user_id' })/
   user_id: User;
 
   @ManyToOne(() => Project, (project) => project.userProjects, {
     nullable: false,
     cascade: true,
-    eager: true,
   })
-  // @JoinColumn({ name: 'project_id' })
   project_id: Project;
 }

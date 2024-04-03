@@ -6,7 +6,7 @@ import {
 import { CreateUserprojectDto } from './dto/create-userproject.dto';
 import { UpdateUserprojectDto } from './dto/update-userproject.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Userproject } from './entities/userproject.entity';
+import { Userproject } from './entities/user-project.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -47,9 +47,16 @@ export class UserprojectService {
     try {
       const users = await this.userProjectRepository.find({
         where: { project_id: { id: projectId } },
-        relations: ['user'],
+        relations: ['user_id'],
       });
-      return users;
+      const mappedUsers = users.map((user) => ({
+        id: user.id,
+        user_detail: {
+          user_id: user.user_id.id,
+          name: user.user_id.name,
+        },
+      }));
+      return mappedUsers;
     } catch (error) {
       throw new NotFoundException(error.message);
     }
@@ -59,9 +66,16 @@ export class UserprojectService {
     try {
       const projects = await this.userProjectRepository.find({
         where: { user_id: { id: userId } },
-        relations: ['project'],
+        relations: ['project_id'], 
       });
-      return projects;
+      const mappedProjects = projects.map(project => ({
+            id: project.id,
+            project_id: {
+                id: project.project_id.id,
+                name: project.project_id.name
+            }
+        }));
+      return mappedProjects;
     } catch (error) {
       throw new NotFoundException('error.message');
     }
