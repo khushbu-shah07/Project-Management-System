@@ -13,11 +13,14 @@ import { StartDateInterceptor } from 'src/Interceptors/startDateInterceptor';
 import { EndDateInterceptor } from 'src/Interceptors/endDateInterceptor';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
+import { UserprojectService } from 'src/userproject/userproject.service';
 
 @Controller('tasks')
 export class TaskController {
   constructor(private readonly taskService: TaskService,
-    private readonly projectService: ProjectService) { }
+    private readonly projectService: ProjectService,
+    private readonly userProjectService: UserprojectService
+    ) { }
 
   @Post()
   @UseGuards(AuthGuard, AdminProjectGuard)
@@ -110,13 +113,19 @@ export class TaskController {
     try {
       const task = await this.taskService.findOne(taskUserData.task_id);
       if (!task) throw new Error('Task with given id does not exists');
-
+      
       if (req['user'].role === "pm") {
         if (req['user'].id !== task.project_id.pm_id.id) {
           throw new ForbiddenException("Access Denied to assign task to user")
         }
       }
+      const projectUser = await this.userProjectService.getUsersFromProject(task.project_id.id);
+      
+      // check if user is associated with the project or not
+      const userProject = projectUser.filter((pu) => pu.user_detail.user_id === taskUserData.user_id);
 
+      if(!userProject || userProject.length === 0) throw new Error('The user you are trying to assgin this task is not associated with the project of this task.')
+      
       const taskUser = await this.taskService.assignTask(taskUserData);
       return sendResponse(
         res,
