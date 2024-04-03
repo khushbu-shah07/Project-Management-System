@@ -40,7 +40,7 @@ export class CommentsController {
   async findAllCommentsByTask(@Param('task_id') task_id: string,@Req() req, @Res() res) {
     try{
       const task=await this.taskService.findOne(+task_id);
-      if(task.length===0){
+      if(!task){
         throw new Error("Task not found.");
       }
 
