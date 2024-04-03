@@ -32,11 +32,16 @@ export class UsersController {
       throw new BadRequestException("Error in FindAll User", error.message)
     }
   }
-  @UseGuards(AuthGuard, AdminGuard)
+  @UseGuards(AuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
       const user = await this.usersService.findOne(+id)
+      if (req['user'].role !== 'admin') {
+        if (req['user'].id !== +id) {
+          throw new Error("Access Denied to Fetch Single User")
+        }
+      }
       return sendResponse(res, httpStatusCodes.OK, "success", "Get Single User", user)
     } catch (error) {
       throw new BadRequestException("Error in Get Single User", error.message)
@@ -51,8 +56,8 @@ export class UsersController {
         data = await this.usersService.update(+id, updateUserDto)
       }
       else {
-        if(+id === req['user'].id){
-          data = await this.usersService.update(req['user'].id,updateUserDto)
+        if (+id === req['user'].id) {
+          data = await this.usersService.update(req['user'].id, updateUserDto)
         }
         else{
           throw new ForbiddenException("Access Denied")
@@ -72,13 +77,13 @@ export class UsersController {
         data = await this.usersService.remove(+id)
       }
       else {
-        if(+id === req['user'].id){
+        if (+id === req['user'].id) {
           data = await this.usersService.remove(req['user'].id)
         }
-        else{
+        else {
           throw new ForbiddenException("You Can Not Delete")
         }
-        
+
       }
       return sendResponse(res, httpStatusCodes.OK, "success", "Delete User", { deletedUser: data })
     } catch (error) {
