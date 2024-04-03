@@ -14,6 +14,7 @@ import { DepartmentUser } from 'src/department/entities/department-user.entity';
 import { TeamUser } from 'src/team/entities/team-user.entity';
 import { TaskUser } from 'src/task/entities/task-user.entity';
 import { Userproject } from 'src/userproject/entities/user-project.entity';
+import { Comment } from "src/comments/entities/comment.entity";
 
 enum UserRole {
   ADMIN = 'admin',
@@ -65,6 +66,9 @@ export class User {
 
   @OneToMany(() => TaskUser, (taskUser) => taskUser.user_id)
   tasks: TaskUser[];
+
+  @OneToMany(()=>Comment,(comment)=>comment.emp_id)
+  comments:Comment[];
 
   @CreateDateColumn({ nullable: false })
   readonly created_at: Date;
