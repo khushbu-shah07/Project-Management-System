@@ -62,7 +62,7 @@ export class TaskController {
     }
   }
 
-  @UseGuards(AuthGuard, AdminProjectGuard)
+  @UseGuards(AuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
@@ -71,6 +71,13 @@ export class TaskController {
         if (req['user'].id !== task.project_id.pm_id.id) {
           throw new ForbiddenException("Access Denied to Fetch Single Task")
         }
+      }
+      if (req['user'].role === 'employee') {
+        const taskUser = await this.taskService.findTaskUser(+id, req['user'].id)
+        if (!taskUser) {
+          throw new ForbiddenException("Access Denied to Fetch Single Task")
+        }
+
       }
       return sendResponse(res, httpStatusCodes.OK, "success", "Get Single Task", task)
     } catch (error) {
@@ -178,4 +185,24 @@ export class TaskController {
       throw new NotFoundException("Error in Delete Task", error.message)
     }
   }
+
+  @UseGuards(AuthGuard)
+  @Patch("/complete/:id")
+  async completeTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
+    const task = await this.taskService.findOne(+id)
+    if (req['user'].role === "pm") {
+      if (req['user'].id !== task.project_id.pm_id.id) {
+        throw new ForbiddenException("Access Denied to Change Status Project")
+      }
+    }
+    if (req['user'].role === 'employee') {
+      const taskUser = await this.taskService.findTaskUser(+id, req['user'].id)
+      if (!taskUser) {
+        throw new ForbiddenException("Access Denied to Change the Status")
+      }
+    }
+    const statusChange = await this.taskService.completeTask(+id)
+    return sendResponse(res,httpStatusCodes.OK,"sucess","Complete Task",statusChange)
+  }
 }
+

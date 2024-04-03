@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Task } from './entities/task.entity';
+import { Task, TaskStatus } from './entities/task.entity';
 import { TaskUser } from './entities/task-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -124,4 +124,16 @@ export class TaskService {
       throw new BadRequestException(error.message);
     }
   }
+
+  async completeTask(id: number) {
+    try {
+      const statusUpdate = await this.taskRepository.update({ id }, { status: TaskStatus.COMPLETED, actualEndDate: new Date().toISOString() })
+      if (statusUpdate.affected === 0) throw new Error("Task not found")
+      return "Task Status Updated Successfully"
+    } catch (error) {
+      throw new BadRequestException(error.message)
+    }
+  }
 }
+
+
