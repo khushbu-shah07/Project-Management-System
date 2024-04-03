@@ -9,8 +9,8 @@ import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { Task } from './entities/task.entity';
 import { ProjectService } from 'src/project/project.service';
-import { StartDateInterceptor } from 'src/project/Interceptors/startDateInterceptor';
-import { EndDateInterceptor } from 'src/project/Interceptors/endDateInterceptor';
+import { StartDateInterceptor } from 'src/Interceptors/startDateInterceptor';
+import { EndDateInterceptor } from 'src/Interceptors/endDateInterceptor';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 
 @Controller('tasks')
@@ -75,7 +75,7 @@ export class TaskController {
   }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
-  // @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
+  @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
