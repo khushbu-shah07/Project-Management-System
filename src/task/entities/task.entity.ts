@@ -29,7 +29,8 @@ export class Task {
   @Column({
     type: 'enum',
     enum: TaskStatus,
-    nullable: false
+    nullable: false,
+    default: TaskStatus.CREATED
   })
   status: TaskStatus
 

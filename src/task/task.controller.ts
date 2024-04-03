@@ -12,6 +12,7 @@ import { ProjectService } from 'src/project/project.service';
 import { StartDateInterceptor } from 'src/project/Interceptors/startDateInterceptor';
 import { EndDateInterceptor } from 'src/project/Interceptors/endDateInterceptor';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
+import { CreateTaskUserDto } from './dto/create-task-user.dto';
 
 @Controller('tasks')
 export class TaskController {
@@ -89,6 +90,36 @@ export class TaskController {
       return sendResponse(res, httpStatusCodes.OK, "success", "Update User", null)
     } catch (error) {
       throw new BadRequestException("Error in Update Task", error.message)
+    }
+  }
+
+  @UseGuards(AuthGuard, AdminProjectGuard)
+  @Post('/users')
+  async assignTaskToUser(
+    @Body() taskUserData: CreateTaskUserDto,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    try {
+      const task = await this.taskService.findOne(taskUserData.task_id);
+      if (!task) throw new Error('Task with given id does not exists');
+
+      if (req['user'].role === "pm") {
+        if (req['user'].id !== task.project_id.pm_id) {
+          throw new ForbiddenException("Access Denied to assign task to user")
+        }
+      }
+
+      const taskUser = await this.taskService.assignTask(taskUserData);
+      return sendResponse(
+        res,
+        httpStatusCodes.Created,
+        'success',
+        'Assign task to user',
+        taskUser
+      )
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
   }
 
