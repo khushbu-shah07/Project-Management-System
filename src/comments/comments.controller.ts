@@ -5,21 +5,45 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
+import { AdminGuard } from 'src/auth/Guards/admin.guard';
 
 @UseGuards(AuthGuard)
 @Controller('/comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
+  @UseGuards(AdminGuard)
   @Get()
   async findAll(@Req() req, @Res() res) {
     try{
-      const result = await this.commentsService.find({});
+      const result = await this.commentsService.findAll();
       sendResponse(res,httpStatusCodes.OK,'Ok','Get all comments',result);
     }
     catch(err){
       throw err;
     }
+  }
+
+  @Get(':task_id')
+  async findOne(@Param('task_id') task_id: string,@Req() req, @Res() res) {
+    try{
+      let result;
+      if(req.user.role==='admin'){
+        result=await this.commentsService.findByTask(+task_id);
+      }
+      else if(req.user.role==='pm'){
+        result = await this.commentsService.findByTaskForPM(+task_id,req.user.id);
+      }
+      else{
+        result = await this.commentsService.findByTaskForEmp(+task_id,req.user.id);
+      }
+
+      sendResponse(res,httpStatusCodes.OK,'ok','Get comments for a task',result);
+    }
+    catch(err){
+      throw err;
+    }
+
   }
 
   @Post()
@@ -33,23 +57,19 @@ export class CommentsController {
     }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.commentsService.findOne(+id);
-  }
-
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto,@Req() req,@Res() res) {
-    let affected=await this.commentsService.updateWithEmpId(+id,req.user.id,updateCommentDto);
-    if(!affected){
-      throw new NotFoundException("Comment not found or Comment belongs to other user.");
+    try{
+      let affected=await this.commentsService.updateWithEmpId(+id,req.user.id,updateCommentDto);
+      if(!affected){
+        throw new NotFoundException("Comment not found or Comment belongs to other user.");
+      }
+  
+      sendResponse(res,httpStatusCodes.OK,'ok','Comment update',null)
     }
-
-    sendResponse(res,httpStatusCodes.OK,'ok','Comment update',null)
+    catch(err){
+      throw err;
+    }
   }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.commentsService.remove(+id);
-  }
+  
 }

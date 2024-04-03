@@ -4,17 +4,33 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Comment } from './entities/comment.entity';
 import { Repository } from 'typeorm';
+import { TaskService } from 'src/task/task.service';
 
 @Injectable()
 export class CommentsService {
-  constructor(@InjectRepository(Comment) private readonly commentRepository:Repository<Comment>){};
+  constructor(@InjectRepository(Comment) private readonly commentRepository:Repository<Comment>, private readonly taskService:TaskService){};
 
-  findAll() {
-    return `This action returns all comments`;
-  }
+  async findAll() {
+    try{
+      return this.commentRepository.find({
+        relations:['emp_id','task_id'],
+        select:{
+          emp_id:{
+            id:true,
+          },
+          task_id:{
+            id:true,
+          }
+        },
+        order:{
+          created_at:'ASC',
+        }
+      });
 
-  findOne(id: number) {
-    return `This action returns a #${id} comment`;
+    }
+    catch(err){
+      throw new BadRequestException(err.message)
+    }
   }
 
   async find(options){
@@ -28,23 +44,87 @@ export class CommentsService {
 
   async findByTask(task_id:number){
     try{
-      return this.commentRepository.find({where:{task_id:task_id} as unknown});
+      return this.commentRepository.find({where:{task_id:task_id} as unknown,
+        relations:['task_id','emp_id'],
+        select:{
+          task_id:{
+            id:true,
+          },
+          emp_id:{
+            id:true,
+          }
+        },
+        order:{
+          created_at:'ASC',
+        }
+      });
     }
     catch(err){
       throw new BadRequestException(err.message)
     }
   }
   
-  async findByEmp(emp_id:number){
+  async findByTaskForEmp(task_id:number,emp_id:number){
     try{
-      const result = await this.commentRepository.find({relations:['emp_id'],where:{
-        emp_id:{
-          id:emp_id
+      const result = await this.commentRepository.find({
+        where:{
+          'task_id.id':task_id,
+          'emp_id.id':emp_id,
+        } as unknown,
+        relations:['emp_id','task_id'],
+        select:{
+          emp_id:{
+            id:true,
+          },
+          task_id:{
+            id:true,
+          }
+        },
+        order:{
+          created_at:'ASC',
         }
-      }});
-
-      console.log(result)
+      });
       
+      return result;
+    }
+    catch(err){
+      throw new BadRequestException(err.message)
+    }
+  }
+
+  async findByTaskForPM(task_id:number,pm_id:number){
+    try{
+      const result = await this.commentRepository.find({
+        where:{
+          task_id:{
+            id:task_id,
+            project_id:{
+              pm_id:pm_id,
+            }
+          }
+        }as unknown,
+        relations:['emp_id','task_id','task_id.project_id','task_id.project_id.pm_id'],
+        select:{
+          id:true,
+          content:true,
+          edited:true,
+          created_at:true,
+          updated_at:true,
+          task_id:{
+            id:true,
+            project_id:{
+              id:false,
+            }
+          },
+          emp_id:{
+            id:true,
+          }
+        },
+        order:{
+          created_at:'ASC',
+        }
+      });
+
       return result;
     }
     catch(err){
@@ -54,13 +134,18 @@ export class CommentsService {
   
   async create(emp_id:number,createCommentDto: CreateCommentDto) {
     try{
+      const isTaskAssigned = await this.taskService.findTaskUser(createCommentDto.task_id,emp_id);
+
+      if(!isTaskAssigned){
+        throw new Error("This task is not assigned to you.")
+      }
+
       const comment=await this.commentRepository.create({emp_id:emp_id,...createCommentDto} as unknown as Comment);
       await this.commentRepository.save(comment);
 
       return comment;
     }
     catch(err){
-      console.log("EE",err.message)
       throw new BadRequestException(err.message)
     }
   }
