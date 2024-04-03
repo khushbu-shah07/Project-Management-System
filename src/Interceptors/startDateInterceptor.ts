@@ -10,11 +10,13 @@ export class StartDateInterceptor implements NestInterceptor {
     currentDate.setDate(currentDate.getDate() - 1);
 
     const date: string = request.body.startDate;
+    if(date){
     const startDate = new Date(date)
 
     if (!this.validateStartDate(startDate, currentDate)) {
       throw new BadRequestException("Invalid Start Date")
     }
+  }
     return next.handle()
   }
   private validateStartDate(startDate: Date, currentDate: Date): boolean {

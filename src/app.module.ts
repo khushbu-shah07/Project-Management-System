@@ -8,9 +8,10 @@ import { ProjectModule } from './project/project.module';
 import { AuthModule } from './auth/auth.module';
 import { DepartmentModule } from './department/department.module';
 import { TeamModule } from './team/team.module';
+import { TaskModule } from './task/task.module';
 
 @Module({
-  imports: [ TypeOrmModule.forRoot(dataSourceOptions),UsersModule, ProjectModule,AuthModule, DepartmentModule, TeamModule],
+  imports: [ TypeOrmModule.forRoot(dataSourceOptions),UsersModule, ProjectModule,AuthModule, DepartmentModule, TeamModule, TaskModule],
   controllers: [AppController],
   providers: [AppService],
 })
