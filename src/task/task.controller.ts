@@ -67,7 +67,7 @@ export class TaskController {
     }
   }
 
-  @UseGuards(AuthGuard, AdminProjectGuard)
+  @UseGuards(AuthGuard)
   @Get('/project/:id')
   async getProjectTasks(
     @Param('id') id: string,
@@ -83,6 +83,17 @@ export class TaskController {
           throw new ForbiddenException("Access Denied to fetch all project tasks")
         }
       }
+
+      // If a user tries to fetch all tasks he/she must be already added in project
+      if (req['user'].role === "employee") {
+        const projectUser = await this.userProjectService.getUsersFromProject(+id);
+
+        // check if user is associated with the project or not
+        const userProject = projectUser.filter((pu) => pu.user_detail.user_id === req['user'].id);
+
+        if (!userProject || userProject.length === 0) throw new ForbiddenException('You are not a part of this project')
+      }
+
       let projectTasks = await this.taskService.getAllProjectTasks(+id);
 
       if (priority) projectTasks = projectTasks.filter((pt) => pt.priority === priority);
