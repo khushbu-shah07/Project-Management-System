@@ -180,7 +180,7 @@ export class TaskController {
 
       if (!userProject || userProject.length === 0) throw new Error('The user you are trying to assgin this task is not associated with the project of this task.')
 
-      const taskUser = await this.taskService.assignTask(taskUserData);
+      const taskUser = await this.taskService.assignTask(taskUserData, task);
       return sendResponse(
         res,
         httpStatusCodes.Created,
