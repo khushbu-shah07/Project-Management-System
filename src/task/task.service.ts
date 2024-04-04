@@ -146,6 +146,22 @@ export class TaskService {
       throw new BadRequestException(error.message)
     }
   }
+
+  async taskBelongsToPM(task_id:number,pm_id:number){
+    try{
+      return await this.taskRepository.exists({
+        where:{id:task_id,project_id:{
+          pm_id:{
+            id:pm_id,
+          }
+        }},
+        relations:['project_id','project_id.pm_id'],
+      })
+    }
+    catch(err){
+      throw new BadRequestException(err.message);
+    }
+  }
 }
 
 
