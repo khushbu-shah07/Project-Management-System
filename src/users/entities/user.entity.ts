@@ -29,7 +29,7 @@ export class User {
   })
   @Index({ unique: true })
   email: string
-  readonly email: string;
+ 
 
   @Column({
     nullable: false,
