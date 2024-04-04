@@ -7,7 +7,7 @@ import { Response } from 'express';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
-import { Task } from './entities/task.entity';
+import { Task, TaskPriority } from './entities/task.entity';
 import { ProjectService } from 'src/project/project.service';
 import { StartDateInterceptor } from 'src/Interceptors/startDateInterceptor';
 import { EndDateInterceptor } from 'src/Interceptors/endDateInterceptor';
@@ -20,7 +20,7 @@ export class TaskController {
   constructor(private readonly taskService: TaskService,
     private readonly projectService: ProjectService,
     private readonly userProjectService: UserprojectService
-    ) { }
+  ) { }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
@@ -53,17 +53,55 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminGuard)
   @Get()
-  async findAll(@Req() req: Request, @Res() res: Response,@Query('priority') priority:string) {
+  async findAll(@Req() req: Request, @Res() res: Response, @Query('priority') priority: string) {
     try {
-      let tasks:Task[]
-      if(priority){
+      let tasks: Task[]
+      if (priority) {
         tasks = await this.taskService.getAllTaskByPriority(priority)
-      }else{
+      } else {
         tasks = await this.taskService.findAll()
       }
       return sendResponse(res, httpStatusCodes.OK, "success", "Get All Tasks", tasks)
     } catch (error) {
       throw new BadRequestException("Error in FindAll Tasks", error.message)
+    }
+  }
+
+  @UseGuards(AuthGuard, AdminProjectGuard)
+  @Get('/project/:id')
+  async getProjectTasks(
+    @Param('id') id: string,
+    @Req() req: Request,
+    @Res() res: Response,
+    @Query('priority') priority: string
+  ) {
+    try {
+      const project = await this.projectService.findOne(+id);
+
+      if (req['user'].role === "pm") {
+        if (req['user'].id !== project.pm_id.id) {
+          throw new ForbiddenException("Access Denied to fetch all project tasks")
+        }
+      }
+      let projectTasks = await this.taskService.getAllProjectTasks(+id);
+
+      if (priority) projectTasks = projectTasks.filter((pt) => pt.priority === priority);
+
+      return sendResponse(
+        res,
+        httpStatusCodes.OK,
+        'success',
+        'Get all project tasks',
+        projectTasks
+      )
+
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw new ForbiddenException(error.message);
+      }
+      else if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
     }
   }
 
@@ -118,19 +156,19 @@ export class TaskController {
     try {
       const task = await this.taskService.findOne(taskUserData.task_id);
       if (!task) throw new Error('Task with given id does not exists');
-      
+
       if (req['user'].role === "pm") {
         if (req['user'].id !== task.project_id.pm_id.id) {
           throw new ForbiddenException("Access Denied to assign task to user")
         }
       }
       const projectUser = await this.userProjectService.getUsersFromProject(task.project_id.id);
-      
+
       // check if user is associated with the project or not
       const userProject = projectUser.filter((pu) => pu.user_detail.user_id === taskUserData.user_id);
 
-      if(!userProject || userProject.length === 0) throw new Error('The user you are trying to assgin this task is not associated with the project of this task.')
-      
+      if (!userProject || userProject.length === 0) throw new Error('The user you are trying to assgin this task is not associated with the project of this task.')
+
       const taskUser = await this.taskService.assignTask(taskUserData);
       return sendResponse(
         res,
@@ -207,7 +245,7 @@ export class TaskController {
       }
     }
     const statusChange = await this.taskService.completeTask(+id)
-    return sendResponse(res,httpStatusCodes.OK,"sucess","Complete Task",statusChange)
+    return sendResponse(res, httpStatusCodes.OK, "sucess", "Complete Task", statusChange)
   }
 }
 
