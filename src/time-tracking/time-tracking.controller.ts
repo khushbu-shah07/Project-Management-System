@@ -36,11 +36,13 @@ export class TimeTrackingController {
 
   }
 
-  @Get('/taskHours/:taskId')
-  async getByTask(@Param('task_id') task_id:number,@Req() req,@Res() res){
+  @Get('/:taskId')
+  async getByTask(@Param('taskId') task_id:number,@Req() req,@Res() res){
     try{
       if(req.user.role==='employee'){
+        console.log(task_id,req.user.id)
         const hasTask=await this.taskService.findTaskUser(task_id,req.user.id);
+        console.log(hasTask)
         if(!hasTask){
           throw new Error("Task is not assigned to you.");
         }

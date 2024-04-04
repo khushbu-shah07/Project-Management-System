@@ -29,8 +29,21 @@ export class TimeTrackingService {
             id:task_id
           }
         }} as unknown,
-        relations:['taskUser_id','taskUser_id.task_id'],
-      });
+        relations:['taskUser_id','taskUser_id.task_id','taskUser_id.user_id'],
+        select:{
+          taskUser_id:{
+            id:true,
+            user_id:{
+              id:true,
+              name:true,
+              email:true,
+            },
+            task_id:{
+              id:false,
+            }
+          }
+        }
+      } as unknown);
 
       return result;
     }
