@@ -2,10 +2,11 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { TimeTrackingService } from './time-tracking.service';
 import { CreateTimeTrackingDto } from './dto/create-time-tracking.dto';
 import { UpdateTimeTrackingDto } from './dto/update-time-tracking.dto';
+import { TaskService } from 'src/task/task.service';
 
 @Controller('time-tracking')
 export class TimeTrackingController {
-  constructor(private readonly timeTrackingService: TimeTrackingService) {}
+  constructor(private readonly timeTrackingService: TimeTrackingService,private readonly taskService:TaskService) {}
 
   @Post()
   create(@Body() createTimeTrackingDto: CreateTimeTrackingDto) {
