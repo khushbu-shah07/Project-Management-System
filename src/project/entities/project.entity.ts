@@ -13,7 +13,7 @@ import { Team } from 'src/team/entities/team.entity';
 import { Task } from 'src/task/entities/task.entity';
 import { Userproject } from 'src/userproject/entities/user-project.entity';
 
-enum ProjectStatus {
+export enum ProjectStatus {
   CREATED = 'created',
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
