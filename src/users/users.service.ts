@@ -55,7 +55,7 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User> {
     try {
-      const user = await this.userRepository.findOne({ where: { email: email },select:{password:true} })
+      const user = await this.userRepository.findOne({ where: { email: email }, select: { password: true, role: true, id: true } })
       return user
     } catch (error) {
       throw new BadRequestException(error.message)
