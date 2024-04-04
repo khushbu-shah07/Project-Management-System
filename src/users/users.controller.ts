@@ -60,8 +60,8 @@ export class UsersController {
         if (+id === req['user'].id) {
           data = await this.usersService.update(req['user'].id, updateUserDto)
         }
-        else {
-          throw new ForbiddenException("You Can Not Update")
+        else{
+          throw new ForbiddenException("Access Denied")
         }
       }
       return sendResponse(res, httpStatusCodes.OK, "success", "Update User", data)
