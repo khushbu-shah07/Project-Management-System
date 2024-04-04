@@ -20,14 +20,15 @@ import { Request, Response } from 'express';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
-import { User } from 'src/users/entities/user.entity';
 import { ProjectService } from 'src/project/project.service';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('userproject')
 export class UserprojectController {
   constructor(
     private readonly userprojectService: UserprojectService,
     private readonly projectService: ProjectService,
+    private readonly usersService: UsersService,
   ) {}
 
   @UseGuards(AuthGuard, AdminProjectGuard)
@@ -38,6 +39,30 @@ export class UserprojectController {
     @Res() res: Response,
   ) {
     try {
+      const userId = createUserprojectDto.user_id;
+      const user = await this.usersService.findOne(userId);
+      if (!user) {
+        throw new BadRequestException('User does not exists');
+      }
+
+      const userRole = user.role;
+      if (userRole === 'pm' || userRole === 'admin') {
+        throw new ForbiddenException(
+          'You can only add employees in the project. no admin and no pm can be added',
+        );
+      }
+
+      const projectId = createUserprojectDto.project_id;
+      const project = await this.projectService.findOne(projectId);
+      if (!project) {
+        throw new BadRequestException("Project doesn't exist");
+      }
+
+      if (req['user']?.role === 'pm' && project.pm_id.id !== req['user'].id) {
+        throw new ForbiddenException(
+          'You can add members to your projects only',
+        );
+      }
       const userproject =
         await this.userprojectService.create(createUserprojectDto);
       return sendResponse(
@@ -52,6 +77,7 @@ export class UserprojectController {
     }
   }
 
+  @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete('/users')
   async removeUserFromProject(
     @Body() userProjectData: CreateUserprojectDto,
@@ -59,6 +85,17 @@ export class UserprojectController {
     @Res() res: Response,
   ) {
     try {
+      const projectId = userProjectData.project_id;
+      const project = await this.projectService.findOne(projectId);
+      if (!project) {
+        throw new BadRequestException("Project doesn't exist");
+      }
+
+      if (req['user']?.role === 'pm' && project.pm_id.id !== req['user'].id) {
+        throw new ForbiddenException(
+          'You can delete members of your projects only',
+        );
+      }
       await this.userprojectService.removeUserFromProject(userProjectData);
       sendResponse(
         res,

@@ -22,12 +22,17 @@ import { Request, Response } from 'express';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
-import { TeamUser } from './entities/team-user.entity';
 import { CreateTeamUserDto } from './dto/create-team-user.dto';
+import { UserprojectService } from 'src/userproject/userproject.service';
+import { ProjectService } from 'src/project/project.service';
 
 @Controller('team')
 export class TeamController {
-  constructor(private readonly teamService: TeamService) {}
+  constructor(
+    private readonly teamService: TeamService,
+    private readonly userprojectService: UserprojectService,
+    private readonly projectService: ProjectService,
+  ) {}
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
@@ -37,6 +42,26 @@ export class TeamController {
     @Res() res: Response,
   ) {
     try {
+      const user = req['user'];
+      const projectId = createTeamDto.project_id;
+      const project = await this.projectService.findOne(projectId);
+      if (!project) {
+        throw new BadRequestException("Project doesn't exist");
+      }
+      const users =
+        await this.userprojectService.getUsersFromProject(projectId);
+      if (!users || users.length === 0) {
+        throw new NotFoundException(
+          'Users does not exists for this project so u cannot create a team',
+        );
+      }
+
+      if (user?.role === 'pm' && project.pm_id.id !== user.id) {
+        throw new ForbiddenException(
+          'You can only create teams for your projects',
+        );
+      }
+
       const team = await this.teamService.create(createTeamDto);
       return sendResponse(
         res,
@@ -50,6 +75,7 @@ export class TeamController {
     }
   }
 
+  // Listing of all teams => data would be all teamIds 
   @UseGuards(AuthGuard, AdminGuard)
   @Get()
   async findAll(@Req() req: Request, @Res() res: Response) {
@@ -66,7 +92,8 @@ export class TeamController {
       throw new InternalServerErrorException(error.message);
     }
   }
-
+ 
+  // removing user from teams -- correction remaining
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete('/users')
   async removeUserFromTeam(
@@ -74,7 +101,7 @@ export class TeamController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    try {
+    try {      
       await this.teamService.removeUserFromTeam(teamUserData);
       return sendResponse(
         res,
@@ -88,6 +115,7 @@ export class TeamController {
     }
   }
 
+  // Retrives a single team  --> doubt
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Get(':id')
   async findOne(
