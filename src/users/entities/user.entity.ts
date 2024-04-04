@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, Index, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from "typeorm";
 import { Project } from "src/project/entities/project.entity";
 
-enum UserRole {
+export enum UserRole {
   ADMIN = 'admin',
   EMPLOYEE = 'employee',
   PM = 'pm'
@@ -9,6 +9,9 @@ enum UserRole {
 
 @Entity()
 export class User {
+  save() {
+    throw new Error('Method not implemented.');
+  }
   @PrimaryGeneratedColumn()
   readonly id: number
 
@@ -21,11 +24,11 @@ export class User {
     nullable: false
   })
   @Index({ unique: true })
-  readonly email: string
+  email: string
 
   @Column({
     nullable: false,
-    select:false
+    select: false
   })
   password: string
 
@@ -34,7 +37,7 @@ export class User {
     enum: UserRole,
     nullable: false
   })
-  readonly role: UserRole;
+  role: UserRole;
 
   @OneToMany(() => Project, (project) => project.pm_id)
   projects: Project[]

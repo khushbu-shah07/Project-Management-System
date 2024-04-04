@@ -12,6 +12,7 @@ import { User } from './entities/user.entity';
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
+  @UseGuards(AuthGuard,AdminGuard)
   @Post()
   async create(@Body() createUserDto: CreateUserDto, @Req() req: Request, @Res() res: Response) {
     try {

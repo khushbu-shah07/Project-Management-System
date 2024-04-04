@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from '../auth/Guards/admin.guard';
+import { UserRole } from './dto/user.role.enum';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +18,21 @@ export class UsersService {
     const Rounds = 10;
     const hash = await bcrypt.hash(password, Rounds);
     return hash;
+  }
+
+
+
+  async createAdminUser(): Promise<void> {
+    const exists = await this.userRepository.existsBy({ email: "admin@gmail.com" })
+    if (!exists) {
+      const admin = this.userRepository.create({
+        name: 'admin',
+        email: 'admin@gmail.com',
+        role: UserRole.ADMIN,
+        password: await this.hashPassword("admin")
+      })
+      await this.userRepository.save(admin)
+    }
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -55,7 +71,7 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User> {
     try {
-      const user = await this.userRepository.findOne({ where: { email: email },select:{password:true} })
+      const user = await this.userRepository.findOne({ where: { email: email }, select: { password: true, role: true, id: true } })
       return user
     } catch (error) {
       throw new BadRequestException(error.message)
