@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Req, Res, UseGuards, ForbiddenException, UseInterceptors, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Req, Res, UseGuards, ForbiddenException, UseInterceptors, NotFoundException, Query } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -22,8 +22,8 @@ export class TaskController {
     private readonly userProjectService: UserprojectService
     ) { }
 
-  @Post()
   @UseGuards(AuthGuard, AdminProjectGuard)
+  @Post()
   @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
   async create(@Body() createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
@@ -51,11 +51,16 @@ export class TaskController {
     }
   }
 
-  @Get()
   @UseGuards(AuthGuard, AdminGuard)
-  async findAll(@Req() req: Request, @Res() res: Response) {
+  @Get()
+  async findAll(@Req() req: Request, @Res() res: Response,@Query('priority') priority:string) {
     try {
-      const tasks = await this.taskService.findAll()
+      let tasks:Task[]
+      if(priority){
+        tasks = await this.taskService.getAllTaskByPriority(priority)
+      }else{
+        tasks = await this.taskService.findAll()
+      }
       return sendResponse(res, httpStatusCodes.OK, "success", "Get All Tasks", tasks)
     } catch (error) {
       throw new BadRequestException("Error in FindAll Tasks", error.message)

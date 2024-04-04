@@ -138,6 +138,16 @@ export class TaskService {
       throw new BadRequestException(error.message)
     }
   }
+
+  async getAllTaskByPriority(priority: string) {
+    try {
+      const tasks = await this.taskRepository.find({where:{priority:priority as any}})
+      return tasks
+    } catch (error) {
+      throw new BadRequestException(error.message)
+
+    }
+  }
 }
 
 
