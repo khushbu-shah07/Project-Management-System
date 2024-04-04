@@ -5,8 +5,7 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
 import { UsersService } from 'src/users/users.service';
-
-
+import { ProjectStatus } from './entities/project.entity';
 @Injectable()
 export class ProjectService {
 
@@ -65,6 +64,19 @@ export class ProjectService {
       return { message: 'Project with given id deleted successfully!' }
     } catch (error) {
       throw new NotFoundException(error.message);
+    }
+  }
+
+  async completeProject(id: number) {
+    try {
+      const statusUpdate = await this.projectRepository.update(id, {
+        status: ProjectStatus.COMPLETED,
+        actualEndDate: new Date().toISOString()
+      })
+
+      if(statusUpdate.affected === 0) throw new Error('Project with given id does not exists');
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
   }
 }
