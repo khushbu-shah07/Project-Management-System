@@ -13,11 +13,13 @@ import { StartDateInterceptor } from 'src/Interceptors/startDateInterceptor';
 import { EndDateInterceptor } from 'src/Interceptors/endDateInterceptor';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
+import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('tasks')
 export class TaskController {
   constructor(private readonly taskService: TaskService,
-    private readonly projectService: ProjectService) { }
+    private readonly projectService: ProjectService , private readonly usersService: UsersService) { }
 
   @Post()
   @UseGuards(AuthGuard, AdminProjectGuard)
@@ -111,6 +113,18 @@ export class TaskController {
       }
 
       const taskUser = await this.taskService.assignTask(taskUserData);
+       
+      const pmOrAdminId=req['user'].id;
+
+      const pmOrAdminDetail =await this.usersService.findOne(pmOrAdminId);
+      const adminEmail = pmOrAdminDetail.email;
+      const user = await this.usersService.findOne(taskUserData.user_id);
+      const userEmail =user.email;
+
+      const taskTitle=task.title;
+
+      sendNotifyEmail(adminEmail,userEmail,`Task has been assigned to you`,`${taskTitle}` ,'None')
+
       return sendResponse(
         res,
         httpStatusCodes.Created,
@@ -141,6 +155,19 @@ export class TaskController {
       }
 
       await this.taskService.removeTaskUser(taskUserData);
+       
+      
+      const pmOrAdminId=req['user'].id;
+
+      const pmOrAdminDetail =await this.usersService.findOne(pmOrAdminId);
+      const adminEmail = pmOrAdminDetail.email;
+      const user = await this.usersService.findOne(taskUserData.user_id);
+      const userEmail =user.email;
+
+      const taskTitle=task.title;
+
+      sendNotifyEmail(adminEmail,userEmail,`Task has been removed for you`,`${taskTitle}` ,'None')
+
       return sendResponse(
         res,
         httpStatusCodes.OK,
