@@ -154,7 +154,7 @@ export class TaskService {
     try {
       let projectTasks: Task[] = await this.taskRepository.find({
         where: {
-          project_id: project_id as any
+          project_id: { id: project_id }
         }
       })
       return projectTasks;

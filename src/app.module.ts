@@ -13,10 +13,11 @@ import { TeamModule } from './team/team.module';
 import { UserprojectModule } from './userproject/userproject.module';
 import { TaskModule } from './task/task.module';
 import { CommentsModule } from './comments/comments.module';
+import { ReportModule } from './report/report.module';
 
 
 @Module({
-  imports: [ TypeOrmModule.forRoot(dataSourceOptions),UsersModule, ProjectModule,AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule, CommentsModule],
+  imports: [ TypeOrmModule.forRoot(dataSourceOptions),UsersModule, ProjectModule,AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule, CommentsModule, ReportModule],
   controllers: [AppController],
   providers: [AppService],
 })
