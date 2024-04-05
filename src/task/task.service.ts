@@ -100,6 +100,18 @@ export class TaskService {
     }
   }
 
+  async findTaskUserRow(task_id:number,user_id:number){
+    try{
+      return await this.taskUserRepository
+      .createQueryBuilder('tu')
+      .where('tu.task_id = :taskId', { taskId: task_id })
+      .andWhere('tu.user_id = :userId', { userId: user_id }).getOne();
+    }
+    catch(err){
+      throw new BadRequestException(err.message);
+    }
+  }
+
   async assignTask(taskUserData: CreateTaskUserDto, task: Task) {
     try {
       const isExists = await this.findTaskUser(taskUserData.task_id, taskUserData.user_id);
@@ -150,6 +162,22 @@ export class TaskService {
     }
   }
 
+  async taskBelongsToPM(task_id:number,pm_id:number){
+    try{
+      return await this.taskRepository.exists({
+        where:{id:task_id,project_id:{
+          pm_id:{
+            id:pm_id,
+          }
+        }},
+        relations:['project_id','project_id.pm_id'],
+      })
+    }
+    catch(err){
+      throw new BadRequestException(err.message);
+    }
+  }
+
   async getAllProjectTasks(project_id: number) {
     try {
       let projectTasks: Task[] = await this.taskRepository.find({
@@ -169,7 +197,6 @@ export class TaskService {
       return tasks
     } catch (error) {
       throw new BadRequestException(error.message)
-    }
   }
 }
 
