@@ -13,7 +13,7 @@ export class DepartmentService {
 
   constructor(@InjectRepository(Department) private readonly departmentRepository: Repository<Department>, @InjectRepository(DepartmentUser) private readonly departmentUserRepository: Repository<DepartmentUser>) { }
 
-  async create(departmentData: CreateDepartmentDto) {
+  async create(departmentData: CreateDepartmentDto): Promise<Department> {
     try {
       const department = await this.departmentRepository.create(departmentData as unknown as Department);
       await this.departmentRepository.save(department);
@@ -23,7 +23,7 @@ export class DepartmentService {
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<Department[]> {
     try {
       const departments = await this.departmentRepository.find();
       return departments;
@@ -32,7 +32,7 @@ export class DepartmentService {
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<Department> {
     try {
       const department = await this.departmentRepository.findOne({
         where: {
@@ -46,7 +46,7 @@ export class DepartmentService {
     }
   }
 
-  async findByName(name: string) {
+  async findByName(name: string): Promise<Department> {
     try {
       const department = await this.departmentRepository.findOne({
         where: {
@@ -79,7 +79,7 @@ export class DepartmentService {
     }
   }
 
-  async findUserInDepartment(department_id: number, user_id: number) {
+  async findUserInDepartment(department_id: number, user_id: number): Promise<number> {
     try {
       const departmentUser = await this.departmentUserRepository
         .createQueryBuilder('du')
@@ -92,14 +92,13 @@ export class DepartmentService {
     }
   }
 
-  async addUserToDepartment(departmentUserData: CreateDepartmentUserDto) {
+  async addUserToDepartment(departmentUserData: CreateDepartmentUserDto): Promise<DepartmentUser> {
     try {
       const isExists = await this.findUserInDepartment(departmentUserData.department_id, departmentUserData.user_id);
       if (isExists > 0) throw new BadRequestException('User already exists in this departmnet');
       const departmentUser = await this.departmentUserRepository.create(departmentUserData as unknown as DepartmentUser)
       await this.departmentUserRepository.save(departmentUser)
       return departmentUser;
-
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
@@ -119,7 +118,7 @@ export class DepartmentService {
     }
   }
 
-  async findDepartmentUsers(department_id: number) {
+  async findDepartmentUsers(department_id: number): Promise<DepartmentUser[]> {
     try {
       const departmentUsers = await this.departmentUserRepository.find({
         where: {
