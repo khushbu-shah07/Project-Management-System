@@ -6,6 +6,8 @@ import { TaskService } from 'src/task/task.service';
 import { ProjectService } from 'src/project/project.service';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
+import { TaskStatus } from 'src/task/entities/task.entity';
+import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
 
 @UseGuards(AuthGuard)
 @Controller('taskHours/')
@@ -20,12 +22,16 @@ export class TimeTrackingController {
 
     try{
       const {task_id}=createTimeTrackingDto;
+      
       const taskUser=await this.taskService.findTaskUserRow(task_id,req.user.id);
-      // console.log(taskUser.id,req.user)
       if(!taskUser){
         throw new Error("Task is not assigned to you.");
       }
-
+      
+      const task=await this.taskService.findOne(task_id);
+      if(task.status===TaskStatus.COMPLETED)
+        throw new Error("Task is complemented so cannot add time log.")
+      
       const result=await this.timeTrackingService.create(taskUser.id,createTimeTrackingDto);
       
       sendResponse(res,httpStatusCodes.Created,'created','Add time log',result);
@@ -58,6 +64,29 @@ export class TimeTrackingController {
       const result=await this.timeTrackingService.getTaskHoursByTask(task_id);
       
       sendResponse(res,httpStatusCodes.OK,'ok','get hour logs by task',result);
+    }
+    catch(err){
+      throw new BadRequestException(err.message);
+    }
+  }
+
+  @UseGuards(ProjectManagerGuard)
+  @Get('/project/:project_id')
+  async getLogsOfProject(@Param('project_id') project_id:number,@Req() req,@Res() res){
+    console.log(req.user.id)
+    try{
+      const project=await this.projectService.findOne(project_id);
+      console.log("P",project)
+      if(!project){
+        throw new Error("Invalid project id.")
+      }
+      if(project.pm_id.id!==req.user.id){
+        throw new Error("This project is not yours.")
+      }
+
+      const result=await this.timeTrackingService.getByProject(project_id);
+      
+      sendResponse(res,httpStatusCodes.OK,'ok','Get logs of a project',result)
     }
     catch(err){
       throw new BadRequestException(err.message);
