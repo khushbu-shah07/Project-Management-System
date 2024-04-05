@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Res, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Res, BadRequestException, HttpException } from '@nestjs/common';
 import { TimeTrackingService } from './time-tracking.service';
 import { CreateTimeTrackingDto } from './dto/create-time-tracking.dto';
 import { UpdateTimeTrackingDto } from './dto/update-time-tracking.dto';
@@ -8,6 +8,7 @@ import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { TaskStatus } from 'src/task/entities/task.entity';
 import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
+import { AdminGuard } from 'src/auth/Guards/admin.guard';
 
 @UseGuards(AuthGuard)
 @Controller('taskHours/')
@@ -37,9 +38,24 @@ export class TimeTrackingController {
       sendResponse(res,httpStatusCodes.Created,'created','Add time log',result);
     }
     catch(err){
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
 
+  }
+
+  @Get('my')
+  async getMyLogs(@Req() req,@Res() res){
+    try{
+      if(req.user.role!=='employee'){
+        throw new Error("Only employees has access.")
+      }
+
+      const result=await this.timeTrackingService.getLogsByEmp(+req.user.id);
+      sendResponse(res,httpStatusCodes.OK,'ok','Get your logs',result)
+    }
+    catch(err){
+      throw new BadRequestException(err.message)
+    }
   }
 
   @Get('/:taskId')
@@ -66,7 +82,7 @@ export class TimeTrackingController {
       sendResponse(res,httpStatusCodes.OK,'ok','get hour logs by task',result);
     }
     catch(err){
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -89,27 +105,20 @@ export class TimeTrackingController {
       sendResponse(res,httpStatusCodes.OK,'ok','Get logs of a project',result)
     }
     catch(err){
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
+  @UseGuards(AdminGuard)
   @Get()
-  findAll() {
-    return this.timeTrackingService.findAll();
+  findAll(@Req() req,@Res() res) {
+    try{
+      const result = this.timeTrackingService.findAll();
+      sendResponse(res,httpStatusCodes.OK,'ok','Get all time logs.',result);
+    }
+    catch(err){
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.timeTrackingService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTimeTrackingDto: UpdateTimeTrackingDto) {
-    return this.timeTrackingService.update(+id, updateTimeTrackingDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.timeTrackingService.remove(+id);
-  }
 }

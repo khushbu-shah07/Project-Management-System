@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -8,6 +9,8 @@ import { UpdateTimeTrackingDto } from './dto/update-time-tracking.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TaskHour } from './entities/time-tracking.entity';
 import { Repository } from 'typeorm';
+import { httpStatusCodes } from 'utils/sendresponse';
+import { TaskUser } from 'src/task/entities/task-user.entity';
 
 @Injectable()
 export class TimeTrackingService {
@@ -19,7 +22,7 @@ export class TimeTrackingService {
   async create(
     taskUser_id: number,
     createTimeTrackingDto: CreateTimeTrackingDto,
-  ) {
+  ) :Promise<TaskHour>{
     delete createTimeTrackingDto.task_id;
 
     try {
@@ -29,11 +32,11 @@ export class TimeTrackingService {
       });
       return this.taskHourRepository.save(log);
     } catch (err) {
-      throw new InternalServerErrorException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async getTaskHoursByTask(task_id: number) {
+  async getTaskHoursByTask(task_id: number) : Promise<{result:TaskUser[],total_hours:number}> {
     try {
       // const result = await this.taskHourRepository.find({
       //   where:{taskUser_id:{
@@ -74,11 +77,11 @@ export class TimeTrackingService {
 
       return { result:result, total_hours: r2.hours };
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async getByProject(project_id:number){
+  async getByProject(project_id:number):Promise<{result:TaskUser[],total_hours:number}>{
     try{
 
       const result = await this.taskHourRepository.createQueryBuilder('taskHour')
@@ -98,23 +101,53 @@ export class TimeTrackingService {
       return {result,total_hours};
     }
     catch(err){
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  findAll() {
-    return `This action returns all timeTracking`;
+  async getLogsByEmp(emp_id:number):Promise<TaskHour[]>{
+    try{
+      return await this.taskHourRepository.find({
+        where:{
+          taskUser_id:{
+            user_id:{
+              id:emp_id,
+            }
+          }
+        } as unknown,
+        relations:['taskUser_id','taskUser_id.user_id','taskUser_id.task_id'],
+        select:{
+          taskUser_id:{
+            id:true,
+            user_id:{
+              id:false,
+            },
+            task_id:{
+              id:true,
+              title:true,
+              description:true,
+              status:true,
+              priority:true,
+              startDate:true,
+              expectedEndDate:true,
+              actualEndDate:true,
+            }
+          }
+        }
+      } as unknown)
+    }
+    catch(err){
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} timeTracking`;
+  async findAll():Promise<TaskHour[]>{
+    try{
+      return this.taskHourRepository.find({});
+    }
+    catch(err){
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
+    }
   }
 
-  update(id: number, updateTimeTrackingDto: UpdateTimeTrackingDto) {
-    return `This action updates a #${id} timeTracking`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} timeTracking`;
-  }
 }
