@@ -21,12 +21,10 @@ import { Request, Response } from 'express';
 import { CreateDepartmentUserDto } from './dto/create-department-user.dto';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { UsersService } from 'src/users/users.service';
-import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
 
 @Controller('departments')
 export class DepartmentController {
-  constructor(private readonly departmentService: DepartmentService , private readonly usersService: UsersService ) {}
+  constructor(private readonly departmentService: DepartmentService) {}
 
   @UseGuards(AuthGuard, AdminGuard)
   @Post()
@@ -117,14 +115,6 @@ export class DepartmentController {
   ) {
     try {
       await this.departmentService.removeFromDepartment(departmentUserData);
-      const adminId=req['user'].id;
-      console.log("adminDetail ",adminId)
-      const adminDetail =await this.usersService.findOne(adminId);
-      const adminEmail = adminDetail.email;
-      const user = await this.usersService.findOne(departmentUserData.user_id);
-      const userEmail =user.email;
-      sendNotifyEmail(adminEmail,userEmail,`you have been removed from department`,'None','None')
-      
       return sendResponse(
         res,
         httpStatusCodes.Created,
@@ -147,15 +137,6 @@ export class DepartmentController {
     try {
       const departmentUser =
         await this.departmentService.addUserToDepartment(departmentUserData);
-
-        const adminId=req['user'].id;
-        console.log("adminDetail ",adminId)
-        const adminDetail =await this.usersService.findOne(adminId);
-        const adminEmail = adminDetail.email;
-        const user = await this.usersService.findOne(departmentUserData.user_id);
-        const userEmail =user.email;
-        sendNotifyEmail(adminEmail,userEmail,`you have been added in department`,'None','None')
-
       return sendResponse(
         res,
         httpStatusCodes.Created,

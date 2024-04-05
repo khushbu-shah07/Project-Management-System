@@ -63,10 +63,9 @@ export const sendNotifyEmailTemplate = (
           <div class="content">
               <h2>Notification about ${notificationType}</h2>
               <p>Hello ${userEmail},</p>
-              <p>This is to inform you that ${notificationType}  </p>
+              <p>This is to inform you that there is a change in task status and the change is done by ${emailSendBy}</p>
               <p>Details:</p>
               <ul>
-                  <li>Status change by :${emailSendBy}</li>
                   <li>Project: ${projectName} </li>
                   <li>Task Title: ${taskTitle} </li>
               </ul>

@@ -24,13 +24,10 @@ import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { TeamUser } from './entities/team-user.entity';
 import { CreateTeamUserDto } from './dto/create-team-user.dto';
-import { UsersService } from 'src/users/users.service';
-import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
-import { ProjectService } from 'src/project/project.service';
 
 @Controller('team')
 export class TeamController {
-  constructor(private readonly teamService: TeamService,private readonly usersService: UsersService , private readonly projectService:ProjectService ) {}
+  constructor(private readonly teamService: TeamService) {}
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
@@ -79,25 +76,6 @@ export class TeamController {
   ) {
     try {
       await this.teamService.removeUserFromTeam(teamUserData);
-
-      
-      const pmOrAdminId=req['user'].id;
-
-      const pmOrAdminDetail =await this.usersService.findOne(pmOrAdminId);
-      let adminEmail = pmOrAdminDetail.email;
-      const user = await this.usersService.findOne(teamUserData.user_id);
-      const userEmail =user.email;
-
-      const teamId = teamUserData.team_id;
-
-      const teamDeail = await this.teamService.findOne(teamId);
-      const projectID = teamDeail.project_id;
-
-       const projectDetail = await this.projectService.findOne(projectID);
-       const projectName =projectDetail.name;
-
-      sendNotifyEmail(adminEmail,userEmail,`You have been removed from the team `,'None',`${projectName}`)
-
       return sendResponse(
         res,
         httpStatusCodes.OK,
@@ -218,25 +196,6 @@ export class TeamController {
   ) {
     try {
       const teamUser = await this.teamService.addUserToTeam(teamUserData);
-
-      const pmOrAdminId=req['user'].id;
-
-      const pmOrAdminDetail =await this.usersService.findOne(pmOrAdminId);
-      let adminEmail = pmOrAdminDetail.email;
-      const user = await this.usersService.findOne(teamUserData.user_id);
-      const userEmail =user.email;
-
-      const teamId = teamUserData.team_id;
-
-      const teamDeail = await this.teamService.findOne(teamId);
-      const projectID = teamDeail.project_id;
-
-       const projectDetail = await this.projectService.findOne(projectID);
-       const projectName =projectDetail.name;
-
-      sendNotifyEmail(adminEmail,userEmail,`You have been added to the team `,'None',`${projectName}`)
-
-
       return sendResponse(
         res,
         httpStatusCodes.Created,
