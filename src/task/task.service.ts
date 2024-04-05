@@ -1,16 +1,18 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Task, TaskStatus } from './entities/task.entity';
+import { Task, TaskPriority, TaskStatus } from './entities/task.entity';
 import { TaskUser } from './entities/task-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
+import { Project, ProjectStatus } from 'src/project/entities/project.entity';
 
 @Injectable()
 export class TaskService {
   constructor(@InjectRepository(Task) private readonly taskRepository: Repository<Task>,
-    @InjectRepository(TaskUser) private readonly taskUserRepository: Repository<TaskUser>) {
+    @InjectRepository(TaskUser) private readonly taskUserRepository: Repository<TaskUser>,
+    @InjectRepository(Project) private readonly projectRepository: Repository<Project>) {
 
   }
   async create(createTaskDto: CreateTaskDto) {
@@ -110,13 +112,26 @@ export class TaskService {
     }
   }
 
-  async assignTask(taskUserData: CreateTaskUserDto) {
+  async assignTask(taskUserData: CreateTaskUserDto, task: Task) {
     try {
       const isExists = await this.findTaskUser(taskUserData.task_id, taskUserData.user_id);
       if (isExists > 0) throw new Error('The task is already assigned to this user')
 
       const taskUser = await this.taskUserRepository.create(taskUserData as unknown as TaskUser);
       await this.taskUserRepository.save(taskUser);
+
+      // Update the task status when it is assigned
+      await this.taskRepository.update(taskUserData.task_id, {
+        status: TaskStatus.IN_PROGRESS
+      })
+
+      // Update the project status when task of that project is assigned
+      const project_id = task.project_id;
+      await this.projectRepository.update(project_id, {
+        status: ProjectStatus.IN_PROGRESS
+      })
+
+
       return taskUser;
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -161,6 +176,27 @@ export class TaskService {
     catch(err){
       throw new BadRequestException(err.message);
     }
+  }
+
+  async getAllProjectTasks(project_id: number) {
+    try {
+      let projectTasks: Task[] = await this.taskRepository.find({
+        where: {
+          project_id: { id: project_id }
+        }
+      })
+      return projectTasks;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+
+  async getAllTaskByPriority(priority: string) {
+    try {
+      const tasks = await this.taskRepository.find({ where: { priority: priority as any } })
+      return tasks
+    } catch (error) {
+      throw new BadRequestException(error.message)
   }
 }
 
