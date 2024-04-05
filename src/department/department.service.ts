@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { Department } from './entities/department.entity';
@@ -6,80 +6,80 @@ import { DepartmentUser } from './entities/department-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateDepartmentUserDto } from './dto/create-department-user.dto';
-import { User } from 'src/users/entities/user.entity';
+import { httpStatusCodes } from 'utils/sendresponse';
 
 @Injectable()
 export class DepartmentService {
 
   constructor(@InjectRepository(Department) private readonly departmentRepository: Repository<Department>, @InjectRepository(DepartmentUser) private readonly departmentUserRepository: Repository<DepartmentUser>) { }
 
-  async create(departmentData: CreateDepartmentDto) {
+  async create(departmentData: CreateDepartmentDto): Promise<Department> {
     try {
       const department = await this.departmentRepository.create(departmentData as unknown as Department);
       await this.departmentRepository.save(department);
       return department;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<Department[]> {
     try {
       const departments = await this.departmentRepository.find();
       return departments;
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<Department> {
     try {
       const department = await this.departmentRepository.findOne({
         where: {
           id: id
         }
       })
-      if (!department) throw new Error('Department with given id does not exists');
+      if (!department) throw new NotFoundException('Department with given id does not exists');
       return department;
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async findByName(name: string) {
+  async findByName(name: string): Promise<Department> {
     try {
       const department = await this.departmentRepository.findOne({
         where: {
           name: name
         }
       })
-      if (!department) throw new Error('Department with given name does not exists');
+      if (!department) throw new NotFoundException('Department with given name does not exists');
       return department;
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
   async update(id: number, departmentData: UpdateDepartmentDto) {
     try {
       const department = await this.departmentRepository.update({ id }, departmentData)
-      if (department.affected === 0) throw new Error('Department with given id does not exists');
+      if (department.affected === 0) throw new NotFoundException('Department with given id does not exists');
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
   async remove(id: number) {
     try {
       const data = await this.departmentRepository.softDelete({ id })
-      if (data.affected === 0) throw new Error('Department with given id does not exists');
+      if (data.affected === 0) throw new NotFoundException('Department with given id does not exists');
       return { message: 'Department with given id deleted' };
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async findUserInDepartment(department_id: number, user_id: number) {
+  async findUserInDepartment(department_id: number, user_id: number): Promise<number> {
     try {
       const departmentUser = await this.departmentUserRepository
         .createQueryBuilder('du')
@@ -88,20 +88,19 @@ export class DepartmentService {
         .getCount()
       return departmentUser;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async addUserToDepartment(departmentUserData: CreateDepartmentUserDto) {
+  async addUserToDepartment(departmentUserData: CreateDepartmentUserDto): Promise<DepartmentUser> {
     try {
       const isExists = await this.findUserInDepartment(departmentUserData.department_id, departmentUserData.user_id);
-      if (isExists > 0) throw new Error('User already exists in this departmnet');
+      if (isExists > 0) throw new BadRequestException('User already exists in this departmnet');
       const departmentUser = await this.departmentUserRepository.create(departmentUserData as unknown as DepartmentUser)
       await this.departmentUserRepository.save(departmentUser)
       return departmentUser;
-
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -113,28 +112,22 @@ export class DepartmentService {
         .where('department_id = :departmentId', { departmentId: departmentUserData.department_id })
         .andWhere('user_id = :userId', { userId: departmentUserData.user_id })
         .execute()
-      if (result.affected === 0) throw new Error('User does not exists in this department')
+      if (result.affected === 0) throw new BadRequestException('User does not exists in this department')
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async findDepartmentUsers(department_id: number) {
+  async findDepartmentUsers(department_id: number): Promise<DepartmentUser[]> {
     try {
       const departmentUsers = await this.departmentUserRepository.find({
         where: {
           department_id: { id: department_id }
         }
       })
-
-      // const departmentUsers = await this.departmentUserRepository
-      //   .createQueryBuilder('du')
-      //   .where('du.department_id = :departmentId', { departmentId: department_id })
-      //   .getRawMany()
-
       return departmentUsers;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 }
