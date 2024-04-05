@@ -1,4 +1,4 @@
-import { BadGatewayException, BadRequestException, Injectable, UseGuards } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, HttpException, Injectable, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from '../auth/Guards/admin.guard';
 import { UserRole } from './dto/user.role.enum';
+import { httpStatusCodes } from 'utils/sendresponse';
 
 @Injectable()
 export class UsersService {
@@ -44,7 +45,7 @@ export class UsersService {
       delete user.password;
       return user;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message,error.status||httpStatusCodes['Bad Request'])
     }
   }
 
@@ -53,7 +54,7 @@ export class UsersService {
       const users = await this.userRepository.find()
       return users;
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new HttpException(error.message,error.status||httpStatusCodes['Bad Request'])
     }
   }
 
@@ -65,7 +66,7 @@ export class UsersService {
       }
       return user
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new HttpException(error.message,error.status||httpStatusCodes['Bad Request'])
     };
   }
 
@@ -74,7 +75,7 @@ export class UsersService {
       const user = await this.userRepository.findOne({ where: { email: email }, select: { password: true, role: true, id: true } })
       return user
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new HttpException(error.message,error.status||httpStatusCodes['Bad Request'])
     }
   }
 
@@ -91,7 +92,7 @@ export class UsersService {
       const user = await this.userRepository.findOneBy({ id });
       return user;
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new HttpException(error.message,error.status||httpStatusCodes['Bad Request'])
     }
   }
 
@@ -103,7 +104,7 @@ export class UsersService {
       }
       return deleted.affected
     } catch (error) {
-      throw new BadRequestException(error.message)
+      throw new HttpException(error.message,error.status||httpStatusCodes['Bad Request'])
     }
   }
 }
