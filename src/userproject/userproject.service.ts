@@ -45,15 +45,17 @@ export class UserprojectService {
 
   async getUsersFromProject(projectId: number) {
     try {
+      console.log('projectId',projectId)
       const users = await this.userProjectRepository.find({
         where: { project_id: { id: projectId } },
         relations: ['user_id'],
       });
+      console.log('users',users)
       const mappedUsers = users.map((user) => ({
         id: user.id,
         user_detail: {
-          user_id: user.user_id.id,
-          name: user.user_id.name,
+          user_id: user.user_id ? user.user_id.id : null,
+          name: user.user_id ? user.user_id.name : null,
         },
       }));
       return mappedUsers;

@@ -24,10 +24,13 @@ import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { StartDateInterceptor } from '../Interceptors/startDateInterceptor';
 import { EndDateInterceptor } from '../Interceptors/endDateInterceptor';
+import { UserprojectService } from 'src/userproject/userproject.service';
+import { ProjectStatus } from 'src/notification/serviceBasedEmail/projectStatusUpdate';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('projects')
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) { }
+  constructor(private readonly projectService: ProjectService, private readonly userProject:UserprojectService , private readonly usersService:UsersService ) { }
 
   @UseGuards(AuthGuard, ProjectManagerGuard)
   @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
@@ -188,14 +191,37 @@ export class ProjectController {
         throw new ForbiddenException('Access denied to change the project status');
       }
     }
-
     await this.projectService.completeProject(+id);
+     
+    const pmOrAdminEmail=project.pm_id.email;
+    const projectId=project.id;
+    const projectName=project.name
+  
+    const allUsersInProject=await this.userProject.getUsersFromProject(projectId)
+    
+ const allUsersId=[];
+     for(const user in allUsersInProject){
+      const userID=allUsersInProject[user].user_detail.user_id;
+        if(userID){
+          allUsersId.push(userID)
+        }
+     }
+
+    let allUsersEmail=[] ;
+    for(const userId in allUsersId){
+       const usersDetail=await this.usersService.findOne(Number(allUsersId[userId]));
+       allUsersEmail.push(usersDetail.email)
+
+    }
+    console.log("all users",allUsersEmail)
+    ProjectStatus.projectStatusUpdate(pmOrAdminEmail,allUsersInProject,'completed',projectName,this.usersService)
+
     return sendResponse(
       res,
       httpStatusCodes.OK,
       'success',
       'Complete project',
-      null
+       allUsersInProject
     )
   }
 }

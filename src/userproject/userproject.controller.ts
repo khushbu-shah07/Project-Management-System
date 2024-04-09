@@ -12,6 +12,8 @@ import {
   UseGuards,
   NotFoundException,
   ForbiddenException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { UserprojectService } from './userproject.service';
 import { CreateUserprojectDto } from './dto/create-userproject.dto';
@@ -20,14 +22,16 @@ import { Request, Response } from 'express';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
-import { User } from 'src/users/entities/user.entity';
 import { ProjectService } from 'src/project/project.service';
+import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('userproject')
 export class UserprojectController {
   constructor(
     private readonly userprojectService: UserprojectService,
-    private readonly projectService: ProjectService,
+    @Inject(forwardRef(() => ProjectService)) private readonly projectService: ProjectService,
+    private readonly usersService:UsersService
   ) {}
 
   @UseGuards(AuthGuard, AdminProjectGuard)
@@ -40,6 +44,22 @@ export class UserprojectController {
     try {
       const userproject =
         await this.userprojectService.create(createUserprojectDto);
+
+        const userDetail =await this.usersService.findOne(createUserprojectDto.user_id);
+        const userEmail = userDetail.email;
+        
+       const pmOrAdminDetail=req['user'];
+      console.log('b',pmOrAdminDetail)
+
+      const pmOrAdminEmail=pmOrAdminDetail.email
+        
+
+       const projectDetail =await this.projectService.findOne(createUserprojectDto.project_id);
+       const projectName = projectDetail.name
+
+        
+       sendNotifyEmail(pmOrAdminEmail,userEmail,`You have been added in project`,`None`,`${projectName}`)
+
       return sendResponse(
         res,
         httpStatusCodes.Created,
@@ -60,6 +80,23 @@ export class UserprojectController {
   ) {
     try {
       await this.userprojectService.removeUserFromProject(userProjectData);
+
+       
+      const userDetail =await this.usersService.findOne(userProjectData.user_id);
+      const userEmail = userDetail.email;
+      
+     const pmOrAdminDetail=req['user'];
+    console.log('b',pmOrAdminDetail)
+
+    const pmOrAdminEmail=pmOrAdminDetail.email
+      
+
+     const projectDetail =await this.projectService.findOne(userProjectData.project_id);
+     const projectName = projectDetail.name
+
+      
+     sendNotifyEmail(pmOrAdminEmail,userEmail,`You have been removed from project`,`None`,`${projectName}`)
+
       sendResponse(
         res,
         httpStatusCodes.OK,
@@ -104,6 +141,7 @@ export class UserprojectController {
   ) {
     try {
       const user = req['user'];
+      console.log('pro', projectId,user);
 
       const users =
         await this.userprojectService.getUsersFromProject(projectId);

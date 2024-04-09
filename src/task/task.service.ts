@@ -171,6 +171,17 @@ export class TaskService {
       throw new BadRequestException(error.message)
     }
   }
+
+  async getUsersInTask(taskId:number){
+    try{
+     const usersInTask=await this.taskUserRepository.find({where:{id:taskId}})
+     const userEmailsInTask=usersInTask.map((user)=>user.user_id.email);
+     return userEmailsInTask;
+    }
+    catch(error){
+      throw new BadRequestException(error.message)
+    }
+  }
 }
 
 
