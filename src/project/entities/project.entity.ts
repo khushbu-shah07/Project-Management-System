@@ -11,8 +11,9 @@ import {
 import { User } from 'src/users/entities/user.entity';
 import { Team } from 'src/team/entities/team.entity';
 import { Task } from 'src/task/entities/task.entity';
+import { Userproject } from 'src/userproject/entities/user-project.entity';
 
-enum ProjectStatus {
+export enum ProjectStatus {
   CREATED = 'created',
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
@@ -60,8 +61,11 @@ export class Project {
   @OneToMany(() => Team, (team) => team.project_id)
   teams: Team[];
 
-  @OneToMany(()=>Task,(task)=>task.project_id)
-  tasks:Task[]
+  @OneToMany(() => Task, (task) => task.project_id)
+  tasks: Task[];
+
+  @OneToMany(() => Userproject, (userProject) => userProject.project_id)
+  userProjects: Userproject[];
 
   @CreateDateColumn({ nullable: false })
   readonly created_at: Date;
