@@ -25,7 +25,6 @@ import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { StartDateInterceptor } from '../Interceptors/startDateInterceptor';
 import { EndDateInterceptor } from '../Interceptors/endDateInterceptor';
 
-
 @Controller('projects')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }
@@ -173,5 +172,30 @@ export class ProjectController {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
+  }
+
+  @UseGuards(AuthGuard, AdminProjectGuard)
+  @Patch('/complete/:id')
+  async completeProject(
+    @Param('id') id: string,
+    @Req() req: Request,
+    @Res() res: Response
+  ) {
+    const project = await this.projectService.findOne(+id);
+
+    if (req['user'].role === 'pm') {
+      if (req['user'].id !== project.pm_id.id) {
+        throw new ForbiddenException('Access denied to change the project status');
+      }
+    }
+
+    await this.projectService.completeProject(+id);
+    return sendResponse(
+      res,
+      httpStatusCodes.OK,
+      'success',
+      'Complete project',
+      null
+    )
   }
 }

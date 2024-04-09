@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Req, Res, UseGuards, ForbiddenException, UseInterceptors, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Req, Res, UseGuards, ForbiddenException, UseInterceptors, NotFoundException, Query } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -7,20 +7,23 @@ import { Response } from 'express';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
-import { Task } from './entities/task.entity';
+import { Task, TaskPriority } from './entities/task.entity';
 import { ProjectService } from 'src/project/project.service';
 import { StartDateInterceptor } from 'src/Interceptors/startDateInterceptor';
 import { EndDateInterceptor } from 'src/Interceptors/endDateInterceptor';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
+import { UserprojectService } from 'src/userproject/userproject.service';
 
 @Controller('tasks')
 export class TaskController {
   constructor(private readonly taskService: TaskService,
-    private readonly projectService: ProjectService) { }
+    private readonly projectService: ProjectService,
+    private readonly userProjectService: UserprojectService
+  ) { }
 
-  @Post()
   @UseGuards(AuthGuard, AdminProjectGuard)
+  @Post()
   @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
   async create(@Body() createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
@@ -48,18 +51,72 @@ export class TaskController {
     }
   }
 
-  @Get()
   @UseGuards(AuthGuard, AdminGuard)
-  async findAll(@Req() req: Request, @Res() res: Response) {
+  @Get()
+  async findAll(@Req() req: Request, @Res() res: Response, @Query('priority') priority: string) {
     try {
-      const tasks = await this.taskService.findAll()
+      let tasks: Task[]
+      if (priority) {
+        tasks = await this.taskService.getAllTaskByPriority(priority)
+      } else {
+        tasks = await this.taskService.findAll()
+      }
       return sendResponse(res, httpStatusCodes.OK, "success", "Get All Tasks", tasks)
     } catch (error) {
       throw new BadRequestException("Error in FindAll Tasks", error.message)
     }
   }
 
-  @UseGuards(AuthGuard, AdminProjectGuard)
+  @UseGuards(AuthGuard)
+  @Get('/project/:id')
+  async getProjectTasks(
+    @Param('id') id: string,
+    @Req() req: Request,
+    @Res() res: Response,
+    @Query('priority') priority: string
+  ) {
+    try {
+      const project = await this.projectService.findOne(+id);
+
+      if (req['user'].role === "pm") {
+        if (req['user'].id !== project.pm_id.id) {
+          throw new ForbiddenException("Access Denied to fetch all project tasks")
+        }
+      }
+
+      // If a user tries to fetch all tasks he/she must be already added in project
+      if (req['user'].role === "employee") {
+        const projectUser = await this.userProjectService.getUsersFromProject(+id);
+
+        // check if user is associated with the project or not
+        const userProject = projectUser.filter((pu) => pu.user_detail.user_id === req['user'].id);
+
+        if (!userProject || userProject.length === 0) throw new ForbiddenException('You are not a part of this project')
+      }
+
+      let projectTasks = await this.taskService.getAllProjectTasks(+id);
+
+      if (priority) projectTasks = projectTasks.filter((pt) => pt.priority === priority);
+
+      return sendResponse(
+        res,
+        httpStatusCodes.OK,
+        'success',
+        'Get all project tasks',
+        projectTasks
+      )
+
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw new ForbiddenException(error.message);
+      }
+      else if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+    }
+  }
+
+  @UseGuards(AuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
@@ -68,6 +125,13 @@ export class TaskController {
         if (req['user'].id !== task.project_id.pm_id.id) {
           throw new ForbiddenException("Access Denied to Fetch Single Task")
         }
+      }
+      if (req['user'].role === 'employee') {
+        const taskUser = await this.taskService.findTaskUser(+id, req['user'].id)
+        if (!taskUser) {
+          throw new ForbiddenException("Access Denied to Fetch Single Task")
+        }
+
       }
       return sendResponse(res, httpStatusCodes.OK, "success", "Get Single Task", task)
     } catch (error) {
@@ -109,6 +173,12 @@ export class TaskController {
           throw new ForbiddenException("Access Denied to assign task to user")
         }
       }
+      const projectUser = await this.userProjectService.getUsersFromProject(task.project_id.id);
+
+      // check if user is associated with the project or not
+      const userProject = projectUser.filter((pu) => pu.user_detail.user_id === taskUserData.user_id);
+
+      if (!userProject || userProject.length === 0) throw new Error('The user you are trying to assgin this task is not associated with the project of this task.')
 
       const taskUser = await this.taskService.assignTask(taskUserData);
       return sendResponse(
@@ -169,4 +239,24 @@ export class TaskController {
       throw new NotFoundException("Error in Delete Task", error.message)
     }
   }
+
+  @UseGuards(AuthGuard)
+  @Patch("/complete/:id")
+  async completeTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
+    const task = await this.taskService.findOne(+id)
+    if (req['user'].role === "pm") {
+      if (req['user'].id !== task.project_id.pm_id.id) {
+        throw new ForbiddenException("Access Denied to Change Status Project")
+      }
+    }
+    if (req['user'].role === 'employee') {
+      const taskUser = await this.taskService.findTaskUser(+id, req['user'].id)
+      if (!taskUser) {
+        throw new ForbiddenException("Access Denied to Change the Status")
+      }
+    }
+    const statusChange = await this.taskService.completeTask(+id)
+    return sendResponse(res, httpStatusCodes.OK, "sucess", "Complete Task", statusChange)
+  }
 }
+

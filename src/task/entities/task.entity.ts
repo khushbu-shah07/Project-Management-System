@@ -1,6 +1,7 @@
 import { Project } from "src/project/entities/project.entity";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { TaskUser } from "./task-user.entity";
+import { Comment } from "src/comments/entities/comment.entity";
 
 export enum TaskStatus {
   CREATED = "created",
@@ -56,6 +57,9 @@ export class Task {
 
   @OneToMany(() => TaskUser, (taskUser) => taskUser.task_id)
   taskUsers: TaskUser[]
+
+  @OneToMany(()=>Comment,(comment)=>comment.emp_id)
+  comments:Comment[];
 
   @CreateDateColumn({ nullable: false })
   readonly created_at: Date;
