@@ -10,5 +10,6 @@ import { ProjectModule } from 'src/project/project.module';
   imports:[TypeOrmModule.forFeature([TaskHour]),TaskModule,ProjectModule],
   controllers: [TimeTrackingController],
   providers: [TimeTrackingService],
+  exports:[TimeTrackingService],
 })
 export class TimeTrackingModule {}
