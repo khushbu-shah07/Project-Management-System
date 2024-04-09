@@ -4,9 +4,9 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../users/users.service';
 import { ProjectStatus } from './entities/project.entity';
-import { httpStatusCodes } from 'utils/sendresponse';
+import { httpStatusCodes } from '../../utils/sendresponse';
 @Injectable()
 export class ProjectService {
 
@@ -74,7 +74,7 @@ export class ProjectService {
         actualEndDate: new Date().toISOString()
       })
 
-      if(statusUpdate.affected === 0) throw new NotFoundException('Project with given id does not exists');
+      if (statusUpdate.affected === 0) throw new NotFoundException('Project with given id does not exists');
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }

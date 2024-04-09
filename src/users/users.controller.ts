@@ -4,7 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Request, Response } from 'express';
 import { httpStatusCodes, sendResponse } from "../../utils/sendresponse";
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
+import { AuthGuard } from '../auth/Guards/auth.guard';
 import { AdminGuard } from '../auth/Guards/admin.guard';
 import { User } from './entities/user.entity';
 

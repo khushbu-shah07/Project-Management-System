@@ -8,13 +8,13 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
 } from 'typeorm';
-import { Project } from 'src/project/entities/project.entity';
+import { Project } from '../../project/entities/project.entity';
 import { Exclude } from 'class-transformer';
-import { DepartmentUser } from 'src/department/entities/department-user.entity';
-import { TeamUser } from 'src/team/entities/team-user.entity';
-import { TaskUser } from 'src/task/entities/task-user.entity';
-import { Userproject } from 'src/userproject/entities/user-project.entity';
-import { Comment } from "src/comments/entities/comment.entity";
+import { DepartmentUser } from '../../department/entities/department-user.entity';
+import { TeamUser } from '../../team/entities/team-user.entity';
+import { TaskUser } from '../../task/entities/task-user.entity';
+import { Userproject } from '../../userproject/entities/user-project.entity';
+import { Comment } from "../../comments/entities/comment.entity";
 
 export enum UserRole {
   ADMIN = 'admin',
