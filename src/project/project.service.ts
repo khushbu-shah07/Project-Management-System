@@ -11,7 +11,7 @@ import { httpStatusCodes } from 'utils/sendresponse';
 export class ProjectService {
 
   constructor(@InjectRepository(Project) private readonly projectRepository: Repository<Project>, private readonly userService: UsersService) { }
-  async create(projectData: CreateProjectDto) {
+  async create(projectData: CreateProjectDto):Promise<Project> {
     try {
       const user = await this.userService.findOne(projectData.pm_id);
       const projectData1 = { ...projectData, pm_id: user }
@@ -23,7 +23,7 @@ export class ProjectService {
     }
   }
 
-  async findAll() {
+  async findAll():Promise<Project[]> {
     try {
       const projects = await this.projectRepository.find();
       return projects;
@@ -32,7 +32,7 @@ export class ProjectService {
     };
   }
 
-  async findOne(id: number) {
+  async findOne(id: number):Promise<Project> {
     try {
       const project = await this.projectRepository.findOne({
         where: {
