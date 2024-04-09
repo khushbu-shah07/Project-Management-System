@@ -8,7 +8,6 @@ import {
   Delete,
   Req,
   Res,
-  BadRequestException,
   UseGuards,
   ForbiddenException,
   UseInterceptors,
@@ -18,12 +17,12 @@ import {
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
+import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
 import { Request, Response } from 'express';
-import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { AdminGuard } from 'src/auth/Guards/admin.guard';
-import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
+import { ProjectManagerGuard } from '../auth/Guards/pm.guard'
+import { AuthGuard } from '../auth/Guards/auth.guard';
+import { AdminGuard } from '../auth/Guards/admin.guard';
+import { AdminProjectGuard } from '../auth/Guards/adminProject.guard';
 import { StartDateInterceptor } from '../Interceptors/startDateInterceptor';
 import { EndDateInterceptor } from '../Interceptors/endDateInterceptor';
 
