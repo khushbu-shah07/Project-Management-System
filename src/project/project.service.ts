@@ -1,4 +1,4 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Repository } from 'typeorm';
@@ -48,6 +48,24 @@ export class ProjectService {
 
   async update(id: number, projectData: UpdateProjectDto) {
     try {
+      let startDate:Date;
+      if (projectData.expectedEndDate) { 
+        const endDate = new Date(projectData.expectedEndDate)
+        if(projectData.startDate){
+          startDate = new Date(projectData.startDate)
+          if (endDate.getTime() < startDate.getTime()){
+            throw new BadRequestException("Invalid End Date")
+          }
+        }
+        else{ 
+          const temp = await this.findOne(id)
+          startDate = new Date(temp.startDate)
+          if (endDate.getTime() < startDate.getTime()){
+            throw new BadRequestException("Invalid End Date")
+          }
+        }  
+      }
+
       const project = await this.projectRepository.update({ id }, projectData as unknown as Project);
 
       if (project.affected === 0) throw new NotFoundException('Project with given id does not exists')

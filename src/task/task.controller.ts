@@ -9,8 +9,8 @@ import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { Task } from './entities/task.entity';
 import { ProjectService } from 'src/project/project.service';
-import { StartDateInterceptor } from 'src/Interceptors/startDateInterceptor';
-import { EndDateInterceptor } from 'src/Interceptors/endDateInterceptor';
+import { StartDateValidationPipe } from 'src/Pipes/startDatePipe';
+import { EndDateValidationPipe } from 'src/Pipes/endDatePipe';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
 import { UserprojectService } from 'src/userproject/userproject.service';
@@ -24,8 +24,7 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
-  @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
-  async create(@Body() createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
+  async create(@Body(StartDateValidationPipe,EndDateValidationPipe) createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
       let task: Partial<Task>;
       if (req['user'].role === 'admin') {
@@ -131,9 +130,8 @@ export class TaskController {
   }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
-  @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Req() req: Request, @Res() res: Response) {
+  async update(@Param('id') id: string, @Body(StartDateValidationPipe) updateTaskDto: UpdateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
       const task = await this.taskService.findOne(+id)
       if (req['user'].role === "pm") {
@@ -142,7 +140,7 @@ export class TaskController {
         }
       }
       await this.taskService.update(+id, updateTaskDto)
-      return sendResponse(res, httpStatusCodes.OK, "success", "Update User", null)
+      return sendResponse(res, httpStatusCodes.OK, "success", "Update Task", null)
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
