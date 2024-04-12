@@ -21,7 +21,6 @@ import { Request, Response } from 'express';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
-import { User } from 'src/users/entities/user.entity';
 import { ProjectService } from 'src/project/project.service';
 import { UsersService } from 'src/users/users.service';
 
@@ -51,7 +50,7 @@ export class UserprojectController {
       if (user.role !== 'employee') {
         throw new ForbiddenException('Only employess can be added');
       }
-      if (req['user'].id !== project.pm_id.id) {
+      if (req['user'].role === 'pm' && req['user'].id !== project.pm_id.id) {
         throw new ForbiddenException('Access Denied');
       }
 
@@ -69,6 +68,7 @@ export class UserprojectController {
     }
   }
 
+  @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete('/users')
   async removeUserFromProject(
     @Body() userProjectData: CreateUserprojectDto,
@@ -79,6 +79,10 @@ export class UserprojectController {
       const project = await this.projectService.findOne(
         userProjectData.project_id,
       );
+
+      if (!project) {
+        throw new BadRequestException("Project doesn't exist");
+      }
 
       if (req['user'].id !== project.pm_id.id) {
         throw new ForbiddenException('Access Denied');
