@@ -12,10 +12,12 @@ import { DepartmentModule } from './department/department.module';
 import { TeamModule } from './team/team.module';
 import { UserprojectModule } from './userproject/userproject.module';
 import { TaskModule } from './task/task.module';
-
+import { CommentsModule } from './comments/comments.module';
+import { TimeTrackingModule } from './time-tracking/time-tracking.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
-  imports: [ TypeOrmModule.forRoot(dataSourceOptions),UsersModule, ProjectModule,AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule],
+  imports: [ TypeOrmModule.forRoot(dataSourceOptions),UsersModule, ProjectModule,AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule, CommentsModule, TimeTrackingModule, ReportModule],
   controllers: [AppController],
   providers: [AppService],
 })
