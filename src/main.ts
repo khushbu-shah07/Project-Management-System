@@ -5,8 +5,6 @@ import { UsersService } from './users/users.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const userService = app.get(UsersService);
-  await userService.createAdminUser();
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist:true
