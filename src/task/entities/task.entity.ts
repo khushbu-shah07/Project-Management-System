@@ -1,7 +1,7 @@
-import { Project } from "src/project/entities/project.entity";
+import { Project } from "../../project/entities/project.entity";
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { TaskUser } from "./task-user.entity";
-import { Comment } from "src/comments/entities/comment.entity";
+import { Comment } from "../../comments/entities/comment.entity";
 
 export enum TaskStatus {
   CREATED = "created",
