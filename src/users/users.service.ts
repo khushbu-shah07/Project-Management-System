@@ -21,18 +21,18 @@ export class UsersService {
 
 
 
-  async createAdminUser(): Promise<void> {
-    const exists = await this.userRepository.existsBy({ email: "admin@gmail.com" })
-    if (!exists) {
-      const admin = this.userRepository.create({
-        name: 'admin',
-        email: 'admin@gmail.com',
-        role: UserRole.ADMIN,
-        password: await this.hashPassword("admin")
-      })
-      await this.userRepository.save(admin)
-    }
-  }
+  // async createAdminUser(): Promise<void> {
+  //   const exists = await this.userRepository.existsBy({ email: "admin@gmail.com" })
+  //   if (!exists) {
+  //     const admin = this.userRepository.create({
+  //       name: 'admin',
+  //       email: 'admin@gmail.com',
+  //       role: UserRole.ADMIN,
+  //       password: await this.hashPassword("admin")
+  //     })
+  //     await this.userRepository.save(admin)
+  //   }
+  // }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
