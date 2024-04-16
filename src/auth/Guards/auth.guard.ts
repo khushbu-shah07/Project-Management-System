@@ -1,15 +1,17 @@
 /* eslint-disable prettier/prettier */
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, HttpException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { UsersService } from 'src/users/users.service';
+import { httpStatusCodes } from 'utils/sendresponse';
 // import { config } from 'dotenv';
 // config()
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService , private userService:UsersService) {}
 
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> {
+  async canActivate(context: ExecutionContext):Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const authorizationHeader = request.headers.authorization;
 
@@ -24,9 +26,10 @@ export class AuthGuard implements CanActivate {
         secret: process.env.JWT_SECRET,
       });
       request['user'] = payload;
+      const user = await this.userService.findOne(request['user'].id)
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
+      throw new HttpException("Invalid Token",httpStatusCodes.Unauthorized)
     }
   }
 }
