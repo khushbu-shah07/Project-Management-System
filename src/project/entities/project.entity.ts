@@ -21,7 +21,7 @@ export enum ProjectStatus {
 @Entity()
 export class Project {
   @PrimaryGeneratedColumn()
-  readonly id: number;
+  id: number;
 
   @Column({ nullable: false })
   name: string;
