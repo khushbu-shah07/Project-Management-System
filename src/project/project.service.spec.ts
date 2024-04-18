@@ -17,7 +17,8 @@ describe('<-- ProjectService -->', () => {
       create: jest.fn(),
       save: jest.fn(),
       find: jest.fn(),
-      update: jest.fn()
+      update: jest.fn(),
+      softDelete: jest.fn()
     };
 
     mockUserService = {
@@ -241,6 +242,84 @@ describe('<-- ProjectService -->', () => {
 
       await expect(service.update(projectId, dataToUpdate)).rejects.toThrow(HttpException);
       expect(mockProjectRepository.update).toHaveBeenCalledWith({ id: projectId }, dataToUpdate);
+    })
+  })
+
+  describe('remove', () => {
+    it('should delete the project', async () => {
+      const projectId = 1;
+
+      const expectedResult = {
+        affected: 1
+      }
+
+      mockProjectRepository.softDelete.mockResolvedValue(expectedResult);
+
+      await service.remove(projectId);
+      expect(mockProjectRepository.softDelete).toHaveBeenCalledWith({ id: projectId });
+    })
+
+    it('should throw httpExpection if project does not exits', async () => {
+      const projectId = 1;
+      const expectedResult = {
+        affected: 0
+      }
+
+      mockProjectRepository.softDelete.mockResolvedValue(expectedResult);
+
+      await expect(service.remove(projectId)).rejects.toThrow(HttpException)
+      expect(mockProjectRepository.softDelete).toHaveBeenCalledWith({ id: projectId });
+    })
+
+    it('should handle database errors', async () => {
+      const projectId = 1;
+      const error = new Error('Database connection error');
+
+      mockProjectRepository.softDelete.mockRejectedValue(error);
+
+      await expect(service.remove(projectId)).rejects.toThrow(HttpException);
+      expect(mockProjectRepository.softDelete).toHaveBeenCalledWith({ id: projectId });
+    })
+  })
+
+  describe('complete project', () => {
+    it('should the project status to completed', async () => {
+      const projectId = 1;
+      const d = new Date().toISOString()
+
+      const expectedResult = {
+        affected: 1
+      }
+
+      mockProjectRepository.update.mockResolvedValue(expectedResult);
+
+      await service.completeProject(projectId);
+      expect(mockProjectRepository.update).toHaveBeenCalledWith(projectId, {status: 'completed', actualEndDate: d});
+    })
+
+    it('should throw httpExpection if project does not exits', async () => {
+      const projectId = 1;
+      const d = new Date().toISOString()
+      const expectedResult = {
+        affected: 0
+      }
+
+      mockProjectRepository.update.mockResolvedValue(expectedResult);
+
+      await expect(service.completeProject(projectId)).rejects.toThrow(HttpException)
+      expect(mockProjectRepository.update).toHaveBeenCalledWith(projectId, {status: 'completed', actualEndDate: d});
+    })
+
+    it('should handle database errors', async () => {
+      const projectId = 1;
+      const d = new Date().toISOString()
+      const error = new Error('Database connection error');
+      
+
+      mockProjectRepository.update.mockRejectedValue(error);
+
+      await expect(service.completeProject(projectId)).rejects.toThrow(HttpException);
+      expect(mockProjectRepository.update).toHaveBeenCalledWith(projectId, {status: 'completed', actualEndDate: d});
     })
   })
 });
