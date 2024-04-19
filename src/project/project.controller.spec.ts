@@ -1,37 +1,88 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProjectController } from './project.controller';
 import { ProjectService } from './project.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Project } from './entities/project.entity';
-import { UsersModule } from '../users/users.module';
-import { dataSourceOptions } from '../../db/data-source';
-import { AuthModule } from '../auth/auth.module';
+import { CreateProjectDto } from './dto/create-project.dto';
+import { getMockReq, getMockRes } from '@jest-mock/express'
+import { httpStatusCodes } from '../../utils/sendresponse';
 
-describe('ProjectController', () => {
+const getMockResponse = () => {
+  const mockResponse = getMockRes()
+  return mockResponse.res;
+}
+
+const getMockAuthentiatedRequest = (body: any, userId: number, role: string) => {
+  const mockRequest = getMockReq({
+    body: body,
+    user: {
+      id: userId,
+      role: role
+    }
+  })
+  return mockRequest;
+}
+
+jest.mock('../auth/Guards/auth.guard', () => ({
+  ProjectManagerGuard: jest.fn().mockImplementation(() => ({
+    canActivate: jest.fn(() => true) // Always authorize for the sake of testing
+  })),
+  AdminGuard: jest.fn().mockImplementation(() => ({
+    canActivate: jest.fn(() => true) // Always authorize for the sake of testing
+  })),
+  AdminProjectGuard: jest.fn().mockImplementation(() => ({
+    canActivate: jest.fn(() => true) // Always authorize for the sake of testing
+  })),
+  AuthGuard: jest.fn().mockImplementation(() => ({
+    canActivate: jest.fn(() => true) // Always authorize for the sake of testing
+  })),
+}));
+
+
+describe('<-- ProjectController -->', () => {
   let controller: ProjectController;
-  let service: ProjectService;
+  let mockProjectService;
 
   beforeEach(async () => {
+    mockProjectService = {
+      create: jest.fn()
+    }
+
     const module: TestingModule = await Test.createTestingModule({
-      imports: [TypeOrmModule.forRoot(dataSourceOptions), TypeOrmModule.forFeature([Project]), UsersModule, AuthModule],
       controllers: [ProjectController],
-      providers: [ProjectService],
+      providers: [{
+        provide: ProjectService,
+        useValue: mockProjectService
+      }],
     }).compile();
 
     controller = module.get<ProjectController>(ProjectController);
-    service = module.get<ProjectService>(ProjectService);
   });
 
-  describe('findAll', () => {
-    it('should return an array of projects', async () => {
-      let result;
-      const testResult = [{
-        name : "egknekg",
-        age: 21        
-      }];
+  describe('create', () => {
+    it('should create a project', async () => {
+      const projectData: CreateProjectDto = {
+        name: 'Test project',
+        description: 'test description',
+        startDate: new Date(),
+        expectedEndDate: new Date(),
+        clientEmail: 'client@gmail.com',
+        pm_id: 1
+      }
 
-      jest.spyOn(service, 'findAll').mockImplementation(async () => result);
-      // expect(await controller.findAll()).toEqual(result);
+      const req = getMockAuthentiatedRequest(projectData, 1, 'pm')
+      const res = getMockResponse()
+
+      const expectedResult = projectData;
+
+      mockProjectService.create.mockResolvedValue(expectedResult);
+
+      await controller.create(projectData, req, res);
+
+      expect(mockProjectService.create).toHaveBeenCalledWith(projectData);
+      expect(res.json).toHaveBeenCalledWith({
+        operation: 'Create project',
+        status: 'success',
+        data: expectedResult
+      })
     })
   })
 });
