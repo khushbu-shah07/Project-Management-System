@@ -13,28 +13,29 @@ import {
   UseInterceptors,
   HttpException,
   NotFoundException,
+  UsePipes,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
 import { Request, Response } from 'express';
-import { ProjectManagerGuard } from '../auth/Guards/pm.guard'
-import { AuthGuard } from '../auth/Guards/auth.guard';
-import { AdminGuard } from '../auth/Guards/admin.guard';
-import { AdminProjectGuard } from '../auth/Guards/adminProject.guard';
-import { StartDateInterceptor } from '../Interceptors/startDateInterceptor';
-import { EndDateInterceptor } from '../Interceptors/endDateInterceptor';
+import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
+import { AuthGuard } from 'src/auth/Guards/auth.guard';
+import { AdminGuard } from 'src/auth/Guards/admin.guard';
+import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
+import { StartDateValidationPipe } from '../Pipes/startDatePipe';
+import { EndDateValidationPipe } from '../Pipes/endDatePipe';
+
 
 @Controller('projects')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }
 
   @UseGuards(AuthGuard, ProjectManagerGuard)
-  @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
   @Post()
   async create(
-    @Body() createProjectDto: CreateProjectDto,
+    @Body(StartDateValidationPipe,EndDateValidationPipe) createProjectDto: CreateProjectDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
@@ -108,11 +109,10 @@ export class ProjectController {
   }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
-  @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateProjectDto: UpdateProjectDto,
+    @Body(StartDateValidationPipe) updateProjectDto: UpdateProjectDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {

@@ -70,6 +70,23 @@ export class TaskService {
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {
     try {
+      let startDate:Date;
+      if (updateTaskDto.expectedEndDate) {
+        const endDate = new Date(updateTaskDto.expectedEndDate)
+        if(updateTaskDto.startDate){
+          startDate = new Date(updateTaskDto.startDate)
+          if (endDate.getTime() < startDate.getTime()){
+            throw new BadRequestException("Invalid End Date")
+          }
+        }
+        else{
+          const temp = await this.findOne(id)
+          startDate = new Date(temp.startDate)
+          if (endDate.getTime() < startDate.getTime()){
+            throw new BadRequestException("Invalid End Date")
+          }
+        }  
+      }
       const task = await this.taskRepository.update(id, updateTaskDto);
       if (task.affected === 0) throw new NotFoundException('Task with given id does not exists');
       return task.affected
