@@ -1,34 +1,94 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, BadRequestException, UseGuards, ForbiddenException, HttpException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Request, Response } from 'express';
+import { httpStatusCodes, sendResponse } from "../../utils/sendresponse";
+import { AuthGuard } from '../auth/Guards/auth.guard';
+import { AdminGuard } from '../auth/Guards/admin.guard';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
+  @UseGuards(AuthGuard,AdminGuard)
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto, @Req() req: Request, @Res() res: Response) {
+    try {
+      const user = await this.usersService.create(createUserDto)
+      return sendResponse(res, httpStatusCodes.Created, "success", "Create User", user)
+    } catch (error) {
+      throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
+    }
   }
 
+  @UseGuards(AuthGuard, AdminGuard)
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll(@Req() req: Request, @Res() res: Response) {
+    try {
+      const users = await this.usersService.findAll()
+      return sendResponse(res, httpStatusCodes.OK, "success", "Get All User", users)
+    } catch (error) {
+      throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
+    }
   }
-
+  @UseGuards(AuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
+    try {
+      const user = await this.usersService.findOne(+id)
+      if (req['user'].role !== 'admin') {
+        if (req['user'].id !== +id) {
+          throw new ForbiddenException("Access Denied to Fetch Single User")
+        }
+      }
+      return sendResponse(res, httpStatusCodes.OK, "success", "Get Single User", user)
+    } catch (error) {
+      throw new HttpException(error.message,error.status||httpStatusCodes['Bad Request'])
+    }
   }
-
+  @UseGuards(AuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  async update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto, @Req() req: Request, @Res() res: Response) {
+    try {
+      let data: User
+      if (req['user'].role === 'admin') {
+        data = await this.usersService.update(+id, updateUserDto)
+      }
+      else {
+        if (+id === req['user'].id) {
+          data = await this.usersService.update(req['user'].id, updateUserDto)
+        }
+        else{
+          throw new ForbiddenException("Access Denied")
+        }
+      }
+      return sendResponse(res, httpStatusCodes.OK, "success", "Update User", data)
+    } catch (error) {
+      throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
+    }
   }
+  @UseGuards(AuthGuard)
+  @Delete(":id")
+  async remove(@Req() req: Request, @Res() res: Response, @Param('id') id: string) {
+    try {
+      let data: Number;
+      if (req['user'].role === 'admin') {
+        data = await this.usersService.remove(+id)
+      }
+      else {
+        if (+id === req['user'].id) {
+          data = await this.usersService.remove(req['user'].id)
+        }
+        else {
+          throw new ForbiddenException("You Can Not Delete")
+        }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+      }
+      return sendResponse(res, httpStatusCodes.OK, "success", "Delete User", { deletedUser: data })
+    } catch (error) {
+      throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
+    }
   }
 }

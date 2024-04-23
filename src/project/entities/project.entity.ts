@@ -1,29 +1,78 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne } from 'typeorm'
-import { User } from 'src/users/entities/user.entity'
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
+import { User } from '../../users/entities/user.entity';
+import { Team } from '../../team/entities/team.entity';
+import { Task } from '../../task/entities/task.entity';
+import { Userproject } from '../../userproject/entities/user-project.entity';
 
+export enum ProjectStatus {
+  CREATED = 'created',
+  IN_PROGRESS = 'in_progress',
+  COMPLETED = 'completed',
+}
 @Entity()
 export class Project {
   @PrimaryGeneratedColumn()
-  id: number
+  id: number;
 
   @Column({ nullable: false })
-  name: string
+  name: string;
 
   @Column({ nullable: false })
-  description: string
+  description: string;
 
   @Column({ nullable: false })
-  deadline: Date
+  startDate: Date;
 
-  @ManyToOne(() => User, (user) => user.projects)
-  pm_id: User
+  @Column({ nullable: false })
+  expectedEndDate: Date;
+
+  @Column({
+    nullable: true,
+  })
+  actualEndDate: Date;
+
+  @Column({
+    type: 'enum',
+    enum: ProjectStatus,
+    nullable: false,
+    default: ProjectStatus.CREATED,
+  })
+  status: ProjectStatus;
+
+  @Column({ nullable: false })
+  clientEmail: string;
+
+  @ManyToOne(() => User, (user) => user.projects, {
+    nullable: false,
+    cascade: true,
+    eager: true,
+  })
+  readonly pm_id: User;
+
+  @OneToMany(() => Team, (team) => team.project_id)
+  teams: Team[];
+
+  @OneToMany(() => Task, (task) => task.project_id)
+  tasks: Task[];
+
+  @OneToMany(() => Userproject, (userProject) => userProject.project_id)
+  userProjects: Userproject[];
 
   @CreateDateColumn({ nullable: false })
-  created_at: Date
+  readonly created_at: Date;
 
   @UpdateDateColumn()
-  updated_at: Date
+  readonly updated_at: Date;
 
   @DeleteDateColumn()
-  deleted_at: Date
+  readonly deleted_at: Date;
 }
