@@ -13,6 +13,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   ForbiddenException,
+  HttpException,
 } from '@nestjs/common';
 import { TeamService } from './team.service';
 import { CreateTeamDto } from './dto/create-team.dto';
@@ -22,12 +23,17 @@ import { Request, Response } from 'express';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
-import { TeamUser } from './entities/team-user.entity';
 import { CreateTeamUserDto } from './dto/create-team-user.dto';
+import { UserprojectService } from 'src/userproject/userproject.service';
+import { ProjectService } from 'src/project/project.service';
 
 @Controller('team')
 export class TeamController {
-  constructor(private readonly teamService: TeamService) {}
+  constructor(
+    private readonly teamService: TeamService,
+    private readonly userprojectService: UserprojectService,
+    private readonly projectService: ProjectService,
+  ) { }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
@@ -37,6 +43,34 @@ export class TeamController {
     @Res() res: Response,
   ) {
     try {
+      const user = req['user'];
+      const projectId = createTeamDto.project_id;
+      const project = await this.projectService.findOne(projectId);
+      if (!project) {
+        throw new BadRequestException("Project doesn't exist");
+      }
+
+      // check if the project is of that pm
+      if (req['user'].role === 'pm') {
+        if (project.pm_id.id !== req['user'].id) {
+          throw new ForbiddenException('Access Denied')
+        }
+      }
+
+      const users =
+        await this.userprojectService.getUsersFromProject(projectId);
+      if (!users || users.length === 0) {
+        throw new NotFoundException(
+          'Users does not exists for this project so u cannot create a team',
+        );
+      }
+
+      if (user?.role === 'pm' && project.pm_id.id !== user.id) {
+        throw new ForbiddenException(
+          'You can only create teams for your projects',
+        );
+      }
+
       const team = await this.teamService.create(createTeamDto);
       return sendResponse(
         res,
@@ -46,10 +80,11 @@ export class TeamController {
         team,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
+  // Listing of all teams => data would be all teamIds 
   @UseGuards(AuthGuard, AdminGuard)
   @Get()
   async findAll(@Req() req: Request, @Res() res: Response) {
@@ -63,10 +98,11 @@ export class TeamController {
         teams,
       );
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
+  // removing user from teams -- correction remaining
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete('/users')
   async removeUserFromTeam(
@@ -84,10 +120,11 @@ export class TeamController {
         null,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
+  // Retrives a single team  --> doubt
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Get(':id')
   async findOne(
@@ -117,7 +154,7 @@ export class TeamController {
         team,
       );
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -150,7 +187,7 @@ export class TeamController {
         null,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -183,7 +220,7 @@ export class TeamController {
         null,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -204,7 +241,7 @@ export class TeamController {
         teamUser,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -215,13 +252,17 @@ export class TeamController {
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const teamUsers = await this.teamService.findAllTeamUsers(+id);
-    return sendResponse(
-      res,
-      httpStatusCodes.OK,
-      'success',
-      'Get Team Users',
-      teamUsers,
-    );
+    try {
+      const teamUsers = await this.teamService.findAllTeamUsers(+id);
+      return sendResponse(
+        res,
+        httpStatusCodes.OK,
+        'success',
+        'Get Team Users',
+        teamUsers,
+      );
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    }
   }
 }

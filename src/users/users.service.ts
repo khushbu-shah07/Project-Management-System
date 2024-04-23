@@ -5,10 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { AdminGuard } from '../auth/Guards/admin.guard';
 import { UserRole } from './dto/user.role.enum';
-import { httpStatusCodes } from 'utils/sendresponse';
+import { httpStatusCodes } from '../../utils/sendresponse';
 
 @Injectable()
 export class UsersService {
@@ -23,18 +21,18 @@ export class UsersService {
 
 
 
-  async createAdminUser(): Promise<void> {
-    const exists = await this.userRepository.existsBy({ email: "admin@gmail.com" })
-    if (!exists) {
-      const admin = this.userRepository.create({
-        name: 'admin',
-        email: 'admin@gmail.com',
-        role: UserRole.ADMIN,
-        password: await this.hashPassword("admin")
-      })
-      await this.userRepository.save(admin)
-    }
-  }
+  // async createAdminUser(): Promise<void> {
+  //   const exists = await this.userRepository.existsBy({ email: "admin@gmail.com" })
+  //   if (!exists) {
+  //     const admin = this.userRepository.create({
+  //       name: 'admin',
+  //       email: 'admin@gmail.com',
+  //       role: UserRole.ADMIN,
+  //       password: await this.hashPassword("admin")
+  //     })
+  //     await this.userRepository.save(admin)
+  //   }
+  // }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {

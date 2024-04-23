@@ -8,7 +8,6 @@ import {
   Delete,
   Req,
   Res,
-  BadRequestException,
   UseGuards,
   ForbiddenException,
   UseInterceptors,
@@ -19,7 +18,7 @@ import {
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
-import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
+import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
 import { Request, Response } from 'express';
 import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
@@ -27,6 +26,7 @@ import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { StartDateValidationPipe } from '../Pipes/startDatePipe';
 import { EndDateValidationPipe } from '../Pipes/endDatePipe';
+
 
 @Controller('projects')
 export class ProjectController {
@@ -184,6 +184,10 @@ export class ProjectController {
   ) {
     try {
       const project = await this.projectService.findOne(+id);
+
+      if(!project) {
+        throw new NotFoundException('Project with given id does not exists');
+      }
 
       if (req['user'].role === 'pm') {
         if (req['user'].id !== project.pm_id.id) {
