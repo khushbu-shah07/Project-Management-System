@@ -24,6 +24,11 @@ import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { CreateTeamUserDto } from './dto/create-team-user.dto';
+import { UsersService } from 'src/users/users.service';
+import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
+import { ProjectService } from 'src/project/project.service';
+import { UserInTeam } from 'src/notification/serviceBasedEmail/userInTeam';
+import { TaskUser } from 'src/task/entities/task-user.entity';
 import { UserprojectService } from 'src/userproject/userproject.service';
 import { ProjectService } from 'src/project/project.service';
 
@@ -112,6 +117,15 @@ export class TeamController {
   ) {
     try {
       await this.teamService.removeUserFromTeam(teamUserData);
+
+      
+      const pmOrAdminId=req['user'].id;
+
+      const userId=teamUserData.user_id;
+    const teamId=teamUserData.team_id
+     
+      UserInTeam.addOrRemoveToTeam(this.usersService,this.projectService,this.teamService,pmOrAdminId,'Remove',userId,teamId)
+
       return sendResponse(
         res,
         httpStatusCodes.OK,
@@ -233,6 +247,14 @@ export class TeamController {
   ) {
     try {
       const teamUser = await this.teamService.addUserToTeam(teamUserData);
+
+      const pmOrAdminId=req['user'].id;
+
+      const userId=teamUserData.user_id;
+    const teamId=teamUserData.team_id
+     
+      UserInTeam.addOrRemoveToTeam(this.usersService,this.projectService,this.teamService,pmOrAdminId,'Add',userId,teamId)
+
       return sendResponse(
         res,
         httpStatusCodes.Created,

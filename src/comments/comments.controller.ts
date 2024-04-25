@@ -7,11 +7,15 @@ import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { TaskService } from 'src/task/task.service';
+import { UserComment } from 'src/notification/serviceBasedEmail/userHasComment';
+import { UsersService } from 'src/users/users.service';
+import { ProjectService } from 'src/project/project.service';
 
 @UseGuards(AuthGuard)
 @Controller('/comments')
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService,private readonly taskService:TaskService) {}
+  constructor(private readonly commentsService: CommentsService,private readonly taskService:TaskService, private readonly projectService:ProjectService,private readonly usersService:UsersService) {}
+
 
   @UseGuards(AdminGuard)
   @Get()
@@ -93,8 +97,16 @@ export class CommentsController {
           throw new Error("Task is not assigned to you.");
         }
       }
+      const pmId=req['user'].id;
+      const pmDetail=await this.usersService.findOne(pmId);
+      const pmEmail=pmDetail.email;
 
       const comment=await this.commentsService.create(req.user.id,createCommentDto);
+      console.log('here')
+      UserComment.UserHasComment(pmEmail,task_id,comment.content,'created',this.taskService,this.projectService);
+
+      const comment=await this.commentsService.create(req.user.id,createCommentDto);
+
       sendResponse(res,httpStatusCodes.Created,'Created','Create comment',comment);
     }
     catch(err){

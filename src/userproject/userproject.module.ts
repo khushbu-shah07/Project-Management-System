@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { UserprojectService } from './userproject.service';
 import { UserprojectController } from './userproject.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,7 +10,7 @@ import { ProjectModule } from 'src/project/project.module';
   imports: [
     TypeOrmModule.forFeature([Userproject]),
     UsersModule,
-    ProjectModule,
+    forwardRef(() => ProjectModule),
   ],
   controllers: [UserprojectController],
   providers: [UserprojectService],
