@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Req, Res, UseGuards, ForbiddenException, UseInterceptors, NotFoundException, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Req, Res, UseGuards, ForbiddenException, UseInterceptors, NotFoundException, Query, UsePipes, HttpException } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -8,17 +8,15 @@ import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { Task, TaskPriority } from './entities/task.entity';
-import { ProjectService } from 'src/project/project.service';
+import { ProjectService } from '../project/project.service'
 import { StartDateValidationPipe } from 'src/Pipes/startDatePipe';
 import { EndDateValidationPipe } from 'src/Pipes/endDatePipe';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
-import { UserprojectService } from 'src/userproject/userproject.service';
-import { UsersService } from 'src/users/users.service';
-import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
+import { UserprojectService } from '../userproject/userproject.service'
+import { UsersService } from '../users/users.service'
 import { UserHasTask } from 'src/notification/serviceBasedEmail/userHasTask';
 import { TaskStatus } from 'src/notification/serviceBasedEmail/TaskStatusUpdate';
-import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
 
 @Controller('tasks')
 export class TaskController {
@@ -30,7 +28,7 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
-  @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
+  @UsePipes(StartDateValidationPipe,EndDateValidationPipe)
   async create(@Body(StartDateValidationPipe,EndDateValidationPipe) createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
       let task: Partial<Task>;
@@ -242,29 +240,6 @@ export class TaskController {
       }
       const data = await this.taskService.remove(+id)
       return sendResponse(res, httpStatusCodes.OK, "success", "Delete Task", { deletedTask: data })
-    } catch (error) {
-      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
-    }
-  }
-
-  @UseGuards(AuthGuard)
-  @Patch("/complete/:id")
-  async completeTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
-    try {
-      const task = await this.taskService.findOne(+id)
-      if (req['user'].role === "pm") {
-        if (req['user'].id !== task.project_id.pm_id.id) {
-          throw new ForbiddenException("Access Denied to Change Status Project")
-        }
-      }
-      if (req['user'].role === 'employee') {
-        const taskUser = await this.taskService.findTaskUser(+id, req['user'].id)
-        if (!taskUser) {
-          throw new ForbiddenException("Access Denied to Change the Status")
-        }
-      }
-      const statusChange = await this.taskService.completeTask(+id)
-      return sendResponse(res, httpStatusCodes.OK, "success", "Complete Task", statusChange)
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }

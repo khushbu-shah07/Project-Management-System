@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import sendNotifyEmail from '../Email/sendNotifyMail';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '../../users/users.service'
 
 export class ProjectStatus {
   static async projectStatusUpdate(
@@ -11,7 +11,7 @@ export class ProjectStatus {
     usersService: UsersService,
   ) {
     try {
-        const allUsersEmail = [];
+        const allUsersEmail:string[] = [];
         for (const user of allUsersInProject) {
           const userID = user.user_detail.user_id;
           if (userID) {

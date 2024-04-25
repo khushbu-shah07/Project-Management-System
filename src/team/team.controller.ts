@@ -24,13 +24,11 @@ import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { CreateTeamUserDto } from './dto/create-team-user.dto';
-import { UsersService } from 'src/users/users.service';
-import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
-import { ProjectService } from 'src/project/project.service';
+import { ProjectService } from '../project/project.service'
 import { UserInTeam } from 'src/notification/serviceBasedEmail/userInTeam';
 import { TaskUser } from 'src/task/entities/task-user.entity';
 import { UserprojectService } from 'src/userproject/userproject.service';
-import { ProjectService } from 'src/project/project.service';
+import { UsersService } from 'src/users/users.service';
 
 @Controller('team')
 export class TeamController {
@@ -38,6 +36,7 @@ export class TeamController {
     private readonly teamService: TeamService,
     private readonly userprojectService: UserprojectService,
     private readonly projectService: ProjectService,
+    private readonly usersService:UsersService
   ) { }
 
   @UseGuards(AuthGuard, AdminProjectGuard)

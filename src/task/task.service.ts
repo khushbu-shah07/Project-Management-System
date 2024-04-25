@@ -149,7 +149,6 @@ export class TaskService {
         status: ProjectStatus.IN_PROGRESS
       })
 
-
       return taskUser;
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
@@ -201,29 +200,6 @@ export class TaskService {
       let projectTasks: Task[] = await this.taskRepository.find({
         where: {
           project_id: { id: project_id }
-        }
-      })
-      return projectTasks;
-    } catch (error) {
-      throw new BadRequestException(error.message);
-    }
-  }
-
-  async completeTask(id: number) {
-    try {
-      const statusUpdate = await this.taskRepository.update({ id }, { status: TaskStatus.COMPLETED, actualEndDate: new Date().toISOString() })
-      if (statusUpdate.affected === 0) throw new Error("Task not found")
-      return "Task Status Updated Successfully"
-    } catch (error) {
-      throw new BadRequestException(error.message)
-    }
-  }
-
-  async getAllProjectTasks(project_id: number) {
-    try {
-      let projectTasks: Task[] = await this.taskRepository.find({
-        where: {
-          project_id: project_id as any
         }
       })
       return projectTasks;

@@ -24,10 +24,8 @@ import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
-import { StartDateInterceptor } from '../Interceptors/startDateInterceptor';
-import { EndDateInterceptor } from '../Interceptors/endDateInterceptor';
 import { UserprojectService } from 'src/userproject/userproject.service';
-import { ProjectStatus } from 'src/notification/serviceBasedEmail/projectStatusUpdate';
+import { ProjectStatus } from '../notification/serviceBasedEmail/projectStatusUpdate'
 import { UsersService } from 'src/users/users.service';
 import { StartDateValidationPipe } from '../Pipes/startDatePipe';
 import { EndDateValidationPipe } from '../Pipes/endDatePipe';
@@ -174,39 +172,6 @@ export class ProjectController {
         'Delete project',
         null,
       );
-    } catch (error) {
-      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
-    }
-  }
-
-  @UseGuards(AuthGuard, AdminProjectGuard)
-  @Patch('/complete/:id')
-  async completeProject(
-    @Param('id') id: string,
-    @Req() req: Request,
-    @Res() res: Response
-  ) {
-    try {
-      const project = await this.projectService.findOne(+id);
-
-      if(!project) {
-        throw new NotFoundException('Project with given id does not exists');
-      }
-
-      if (req['user'].role === 'pm') {
-        if (req['user'].id !== project.pm_id.id) {
-          throw new ForbiddenException('Access denied to change the project status');
-        }
-      }
-
-      await this.projectService.completeProject(+id);
-      return sendResponse(
-        res,
-        httpStatusCodes.OK,
-        'success',
-        'Complete project',
-        null
-      )
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }

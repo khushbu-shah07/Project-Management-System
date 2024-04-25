@@ -102,11 +102,7 @@ export class CommentsController {
       const pmEmail=pmDetail.email;
 
       const comment=await this.commentsService.create(req.user.id,createCommentDto);
-      console.log('here')
       UserComment.UserHasComment(pmEmail,task_id,comment.content,'created',this.taskService,this.projectService);
-
-      const comment=await this.commentsService.create(req.user.id,createCommentDto);
-
       sendResponse(res,httpStatusCodes.Created,'Created','Create comment',comment);
     }
     catch(err){
