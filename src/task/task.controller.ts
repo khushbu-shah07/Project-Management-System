@@ -9,8 +9,8 @@ import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { Task, TaskPriority } from './entities/task.entity';
 import { ProjectService } from 'src/project/project.service';
-import { StartDateInterceptor } from 'src/Interceptors/startDateInterceptor';
-import { EndDateInterceptor } from 'src/Interceptors/endDateInterceptor';
+import { StartDateValidationPipe } from 'src/Pipes/startDatePipe';
+import { EndDateValidationPipe } from 'src/Pipes/endDatePipe';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
 import { UserprojectService } from 'src/userproject/userproject.service';
@@ -31,10 +31,9 @@ export class TaskController {
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
   @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
-  async create(@Body() createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
+  async create(@Body(StartDateValidationPipe,EndDateValidationPipe) createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
       let task: Partial<Task>;
-      console.log(req['user'].role);
       if (req['user'].role === 'admin') {
         task = await this.taskService.create(createTaskDto)
       }
@@ -45,15 +44,14 @@ export class TaskController {
         // Only the Project Manager of the project can add task
         if (project.pm_id['id'] === req['user'].id) {
           task = await this.taskService.create(createTaskDto)
-          console.log(task['project_id']['pm_id']);
         }
         else {
-          throw new ForbiddenException("Only Pm can Add Task of the Project has Access")
+          throw new ForbiddenException("Access Denied")
         }
       }
       return sendResponse(res, httpStatusCodes.Created, "success", "Craete Task", task)
     } catch (error) {
-      throw new BadRequestException("Error in Create Task", error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -69,7 +67,7 @@ export class TaskController {
       }
       return sendResponse(res, httpStatusCodes.OK, "success", "Get All Tasks", tasks)
     } catch (error) {
-      throw new BadRequestException("Error in FindAll Tasks", error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -111,14 +109,8 @@ export class TaskController {
         'Get all project tasks',
         projectTasks
       )
-
     } catch (error) {
-      if (error instanceof ForbiddenException) {
-        throw new ForbiddenException(error.message);
-      }
-      else if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      }
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -137,18 +129,16 @@ export class TaskController {
         if (!taskUser) {
           throw new ForbiddenException("Access Denied to Fetch Single Task")
         }
-
       }
       return sendResponse(res, httpStatusCodes.OK, "success", "Get Single Task", task)
     } catch (error) {
-      throw new NotFoundException("Error in FindOne Task", error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
-  @UseInterceptors(StartDateInterceptor, EndDateInterceptor)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Req() req: Request, @Res() res: Response) {
+  async update(@Param('id') id: string, @Body(StartDateValidationPipe) updateTaskDto: UpdateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
       const task = await this.taskService.findOne(+id)
       if (req['user'].role === "pm") {
@@ -157,9 +147,9 @@ export class TaskController {
         }
       }
       await this.taskService.update(+id, updateTaskDto)
-      return sendResponse(res, httpStatusCodes.OK, "success", "Update User", null)
+      return sendResponse(res, httpStatusCodes.OK, "success", "Update Task", null)
     } catch (error) {
-      throw new BadRequestException("Error in Update Task", error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -192,7 +182,6 @@ export class TaskController {
       const taskTitle=task.title;
       const projectId=task.project_id.id;
       UserHasTask.assignedOrRemoveToTask(this.usersService,this.projectService,pmOrAdminId,'Add',taskUserData,taskTitle,projectId)
-
       return sendResponse(
         res,
         httpStatusCodes.Created,
@@ -201,7 +190,7 @@ export class TaskController {
         taskUser
       )
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -237,7 +226,7 @@ export class TaskController {
         null
       )
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -254,7 +243,30 @@ export class TaskController {
       const data = await this.taskService.remove(+id)
       return sendResponse(res, httpStatusCodes.OK, "success", "Delete Task", { deletedTask: data })
     } catch (error) {
-      throw new NotFoundException("Error in Delete Task", error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch("/complete/:id")
+  async completeTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
+    try {
+      const task = await this.taskService.findOne(+id)
+      if (req['user'].role === "pm") {
+        if (req['user'].id !== task.project_id.pm_id.id) {
+          throw new ForbiddenException("Access Denied to Change Status Project")
+        }
+      }
+      if (req['user'].role === 'employee') {
+        const taskUser = await this.taskService.findTaskUser(+id, req['user'].id)
+        if (!taskUser) {
+          throw new ForbiddenException("Access Denied to Change the Status")
+        }
+      }
+      const statusChange = await this.taskService.completeTask(+id)
+      return sendResponse(res, httpStatusCodes.OK, "success", "Complete Task", statusChange)
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -294,3 +306,4 @@ export class TaskController {
      return sendResponse(res,httpStatusCodes.OK,'success','all users got',userEmailsInTask)
   }
 }
+

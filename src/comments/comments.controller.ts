@@ -16,6 +16,7 @@ import { ProjectService } from 'src/project/project.service';
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService,private readonly taskService:TaskService, private readonly projectService:ProjectService,private readonly usersService:UsersService) {}
 
+
   @UseGuards(AdminGuard)
   @Get()
   async findAll(@Req() req, @Res() res) {
@@ -79,20 +80,18 @@ export class CommentsController {
   @Post()
   async create(@Body() createCommentDto: CreateCommentDto,@Req() req, @Res() res) {
     const {task_id}=createCommentDto;
-  
     try{ 
-    
-      if(req['user'].role ==='admin'){
+      if(req.user.role==='admin'){
         throw new Error("Admin cannot comment on tasks.");
       }
 
-      if(req['user'].role==='pm'){
+      if(req.user.role==='pm'){
         const taskBelongsToPM=await this.commentsService.taskBelongsToPM(+task_id,req.user.id);
         if(!taskBelongsToPM){
           throw new Error("Task does not belongs to your projects.");
         }
       }
-      else if(req['user'].role==='employee'){
+      else if(req.user.role==='employee'){
         const taskAssigned=await this.taskService.findTaskUser(+task_id,req.user.id);
         if(!taskAssigned){
           throw new Error("Task is not assigned to you.");
@@ -105,6 +104,9 @@ export class CommentsController {
       const comment=await this.commentsService.create(req.user.id,createCommentDto);
       console.log('here')
       UserComment.UserHasComment(pmEmail,task_id,comment.content,'created',this.taskService,this.projectService);
+
+      const comment=await this.commentsService.create(req.user.id,createCommentDto);
+
       sendResponse(res,httpStatusCodes.Created,'Created','Create comment',comment);
     }
     catch(err){

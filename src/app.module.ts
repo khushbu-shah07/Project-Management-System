@@ -12,9 +12,8 @@ import { UserprojectModule } from './userproject/userproject.module';
 import { TaskModule } from './task/task.module';
 import { CommentsModule } from './comments/comments.module';
 
-
 @Module({
-  imports: [ TypeOrmModule.forRoot(dataSourceOptions),UsersModule, ProjectModule,AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule, CommentsModule],
+  imports: [ TypeOrmModule.forRoot(dataSourceOptions),UsersModule, ProjectModule,AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule, CommentsModule, TimeTrackingModule, ReportModule],
   controllers: [AppController],
   providers: [AppService],
 })

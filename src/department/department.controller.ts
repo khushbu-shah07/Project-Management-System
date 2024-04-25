@@ -6,12 +6,10 @@ import {
   Patch,
   Param,
   Delete,
-  BadRequestException,
   Req,
   Res,
-  InternalServerErrorException,
-  NotFoundException,
   UseGuards,
+  HttpException,
 } from '@nestjs/common';
 import { DepartmentService } from './department.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
@@ -47,7 +45,7 @@ export class DepartmentController {
         department,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -63,7 +61,7 @@ export class DepartmentController {
         departments,
       );
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -83,7 +81,7 @@ export class DepartmentController {
         department,
       );
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -105,11 +103,11 @@ export class DepartmentController {
         null,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  @UseGuards(AuthGuard ,AdminGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   @Delete('/users')
   async removeUserFromDepartment(
     @Body() departmentUserData: CreateDepartmentUserDto,
@@ -130,11 +128,11 @@ export class DepartmentController {
         null,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  @UseGuards(AuthGuard ,AdminGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   @Post('/users')
   async addUserToDepartment(
     @Body() departmentUserData: CreateDepartmentUserDto,
@@ -157,7 +155,7 @@ export class DepartmentController {
         departmentUser,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -178,11 +176,11 @@ export class DepartmentController {
         departmentUsers,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  @UseGuards(AuthGuard ,AdminGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   @Delete(':id')
   async remove(
     @Param('id') id: string,
@@ -199,7 +197,7 @@ export class DepartmentController {
         null,
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 }
