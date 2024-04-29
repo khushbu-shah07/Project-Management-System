@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TaskService } from './task.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Task } from './entities/task.entity';
-import { Project } from '../../src/project/entities/project.entity';
+import { Task, TaskStatus } from './entities/task.entity';
+import { Project, ProjectStatus } from '../../src/project/entities/project.entity';
 import { TaskUser } from './entities/task-user.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { HttpException } from '@nestjs/common';
@@ -358,6 +358,192 @@ describe('<-- TaskService -->', () => {
 
       await expect(service.findTaskUser(taskId, userId)).rejects.toThrow(HttpException);
       expect(mockTaskUserRepository.createQueryBuilder).toHaveBeenCalled()
+    })
+  })
+
+  describe('assignTask', () => {
+    it('should assign task to user and return taskUser', async () => {
+      const taskUserData = {
+        task_id: 1,
+        user_id: 2
+      }
+
+      const task = {
+        id: 1,
+        title: 'test task',
+        project_id: 2
+      }
+
+      const expectedResult = taskUserData;
+
+      service.findTaskUser = jest.fn().mockResolvedValue(0);
+
+      mockTaskUserRepository.create.mockResolvedValue(expectedResult);
+
+      const result = await service.assignTask(taskUserData, task as unknown as Task);
+
+      expect(result).toEqual(expectedResult);
+      expect(service.findTaskUser).toHaveBeenCalledWith(taskUserData.task_id, taskUserData.user_id);
+      expect(mockTaskUserRepository.create).toHaveBeenCalledWith(taskUserData);
+      expect(mockTaskUserRepository.save).toHaveBeenCalledWith(expectedResult);
+      expect(mockTaskRepository.update).toHaveBeenCalledWith(taskUserData.task_id, { status: TaskStatus.IN_PROGRESS });
+      expect(mockProjectRepository.update).toHaveBeenCalledWith(task.project_id, { status: ProjectStatus.IN_PROGRESS })
+    })
+
+    it('should throw httpException if the task is already assgined to user', async () => {
+      const taskUserData = {
+        task_id: 1,
+        user_id: 2
+      }
+
+      const task = {
+        id: 1,
+        title: 'test task',
+        project_id: 2
+      }
+
+      service.findTaskUser = jest.fn().mockResolvedValue(1);
+
+      await expect(service.assignTask(taskUserData, task as unknown as Task)).rejects.toThrow(HttpException);
+      expect(mockTaskUserRepository.create).not.toHaveBeenCalled();
+      expect(mockTaskUserRepository.save).not.toHaveBeenCalled();
+      expect(mockTaskRepository.update).not.toHaveBeenCalled();
+      expect(mockProjectRepository.update).not.toHaveBeenCalled();
+    })
+
+    it('should handle database errors', async () => {
+      const taskUserData = {
+        task_id: 1,
+        user_id: 2
+      }
+
+      const task = {
+        id: 1,
+        title: 'test task',
+        project_id: 1
+      }
+
+      const error = new Error('Database connection error');
+
+      service.findTaskUser = jest.fn().mockRejectedValue(error);
+
+      await expect(service.assignTask(taskUserData, task as unknown as Task)).rejects.toThrow(HttpException);
+      expect(mockTaskUserRepository.create).not.toHaveBeenCalled();
+      expect(mockTaskUserRepository.save).not.toHaveBeenCalled();
+      expect(mockTaskRepository.update).not.toHaveBeenCalled();
+      expect(mockProjectRepository.update).not.toHaveBeenCalled();
+    })
+  })
+
+  describe('removeTaskUser', () => {
+    it('should delete the task user if exists', async () => {
+      const taskUserData = {
+        task_id: 1,
+        user_id: 2
+      }
+
+      const expectedResult = {
+        affected: 1
+      }
+
+      mockTaskUserRepository.createQueryBuilder.mockReturnValueOnce({
+        delete: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        execute: jest.fn().mockResolvedValueOnce(expectedResult),
+      });
+
+      await service.removeTaskUser(taskUserData);
+      expect(mockTaskUserRepository.createQueryBuilder).toHaveBeenCalled();
+    })
+
+    it('should throw httpException if task user does not exists', async () => {
+      const taskUserData = {
+        task_id: 1,
+        user_id: 2
+      }
+
+      const expectedResult = {
+        affected: 0
+      }
+
+      mockTaskUserRepository.createQueryBuilder.mockReturnValueOnce({
+        delete: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        execute: jest.fn().mockResolvedValueOnce(expectedResult),
+      });
+
+      await expect(service.removeTaskUser(taskUserData)).rejects.toThrow(HttpException);
+      expect(mockTaskUserRepository.createQueryBuilder).toHaveBeenCalled();
+    })
+
+    it('should handle database errors', async () => {
+      const taskUserData = {
+        task_id: 1,
+        user_id: 2
+      }
+
+      const error = new Error('Database connection error');
+
+      mockTaskUserRepository.createQueryBuilder.mockReturnValueOnce({
+        delete: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        execute: jest.fn().mockRejectedValue(error)
+      });
+
+      await expect(service.removeTaskUser(taskUserData)).rejects.toThrow(HttpException);
+      expect(mockTaskUserRepository.createQueryBuilder).toHaveBeenCalled();
+    })
+  })
+
+  describe('completeTask', () => {
+    it('should update the task status', async () => {
+      const task_id = 1;
+      const statusUpdate = { affected: 1 }
+      const expectedResult = "Task Status Updated Successfully";
+
+      mockTaskRepository.update.mockResolvedValue(statusUpdate);
+
+      const result = await service.completeTask(task_id);
+      expect(result).toEqual(expectedResult);
+      expect(mockTaskRepository.update).toHaveBeenCalledWith({
+        id: task_id
+      }, {
+        status: TaskStatus.COMPLETED,
+        actualEndDate: expect.anything()
+      })
+    })
+
+    it('should throw httpException if task does not exsits', async () => {
+      const task_id = 1;
+      const statusUpdate = { affected: 0 }
+
+      mockTaskRepository.update.mockResolvedValue(statusUpdate);
+
+      await expect(service.completeTask(task_id)).rejects.toThrow(HttpException);
+      expect(mockTaskRepository.update).toHaveBeenCalledWith({
+        id: task_id
+      }, {
+        status: TaskStatus.COMPLETED,
+        actualEndDate: expect.anything()
+      })
+    })
+
+    it('should handle database errors', async () => {
+      const task_id = 1;
+      const error = new Error('Database connection error');
+
+      mockTaskRepository.update.mockRejectedValue(error);
+
+      await expect(service.completeTask(task_id)).rejects.toThrow(HttpException);
+      expect(mockTaskRepository.update).toHaveBeenCalledWith({
+        id: task_id
+      }, {
+        status: TaskStatus.COMPLETED,
+        actualEndDate: expect.anything()
+      })
     })
   })
 });
