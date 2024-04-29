@@ -23,13 +23,13 @@ export class TaskController {
   constructor(private readonly taskService: TaskService,
     private readonly projectService: ProjectService,
     private readonly userProjectService: UserprojectService,
-    private readonly usersService:UsersService
+    private readonly usersService: UsersService
   ) { }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
-  @UsePipes(StartDateValidationPipe,EndDateValidationPipe)
-  async create(@Body(StartDateValidationPipe,EndDateValidationPipe) createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
+  @UsePipes(StartDateValidationPipe, EndDateValidationPipe)
+  async create(@Body(StartDateValidationPipe, EndDateValidationPipe) createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
       let task: Partial<Task>;
       if (req['user'].role === 'admin') {
@@ -169,17 +169,19 @@ export class TaskController {
       }
       const projectUser = await this.userProjectService.getUsersFromProject(task.project_id.id);
 
-      const taskUser = await this.taskService.assignTask(taskUserData, task);
-       
       // check if user is associated with the project or not
       const userProject = projectUser.filter((pu) => pu.user_detail.user_id === taskUserData.user_id);
-      
+
       if (!userProject || userProject.length === 0) throw new Error('The user you are trying to assgin this task is not associated with the project of this task.')
-     
-      const pmOrAdminId=req['user'].id;
-      const taskTitle=task.title;
-      const projectId=task.project_id.id;
-      UserHasTask.assignedOrRemoveToTask(this.usersService,this.projectService,pmOrAdminId,'Add',taskUserData,taskTitle,projectId)
+
+      const taskUser = await this.taskService.assignTask(taskUserData, task);
+
+
+
+      const pmOrAdminId = req['user'].id;
+      const taskTitle = task.title;
+      const projectId = task.project_id.id;
+      UserHasTask.assignedOrRemoveToTask(this.usersService, this.projectService, pmOrAdminId, 'Add', taskUserData, taskTitle, projectId)
       return sendResponse(
         res,
         httpStatusCodes.Created,
@@ -210,11 +212,11 @@ export class TaskController {
       }
 
       await this.taskService.removeTaskUser(taskUserData);
-      
-      const pmOrAdminId=req['user'].id;
-      const taskTitle=task.title;
-      const projectId=task.project_id.id;
-      UserHasTask.assignedOrRemoveToTask(this.usersService,this.projectService,pmOrAdminId,'Remove',taskUserData,taskTitle,projectId)
+
+      const pmOrAdminId = req['user'].id;
+      const taskTitle = task.title;
+      const projectId = task.project_id.id;
+      UserHasTask.assignedOrRemoveToTask(this.usersService, this.projectService, pmOrAdminId, 'Remove', taskUserData, taskTitle, projectId)
 
       return sendResponse(
         res,
@@ -260,25 +262,25 @@ export class TaskController {
         throw new ForbiddenException("Access Denied to Change the Status")
       }
     }
-    const taskTitle =task.title;
-    const pmDetail=await this.usersService.findOne(task.project_id.pm_id.id)
-    const pmEmail=pmDetail.email;
+    const taskTitle = task.title;
+    const pmDetail = await this.usersService.findOne(task.project_id.pm_id.id)
+    const pmEmail = pmDetail.email;
     const statusChange = await this.taskService.completeTask(+id);
-    TaskStatus.TaskStatusUpdate(pmEmail,id ,'completed',this.taskService,taskTitle,this.projectService)
+    TaskStatus.TaskStatusUpdate(pmEmail, id, 'completed', this.taskService, taskTitle, this.projectService)
     return sendResponse(res, httpStatusCodes.OK, "sucess", "Complete Task", statusChange)
   }
 
 
-  @UseGuards(AuthGuard,AdminProjectGuard)
+  @UseGuards(AuthGuard, AdminProjectGuard)
   @Patch("/users/:id")
-  async getUsersInTask(@Param('id') id:string,@Req() req: Request, @Res() res: Response){
+  async getUsersInTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     const task = await this.taskService.findOne(+id);
-    if(!task){
+    if (!task) {
       throw new Error('Task with given id does not exists');
     }
-     const userEmailsInTask=await this.taskService.getUsersInTask(Number(id));
-    
-     return sendResponse(res,httpStatusCodes.OK,'success','all users got',userEmailsInTask)
+    const userEmailsInTask = await this.taskService.getUsersInTask(Number(id));
+
+    return sendResponse(res, httpStatusCodes.OK, 'success', 'all users got', userEmailsInTask)
   }
 }
 
