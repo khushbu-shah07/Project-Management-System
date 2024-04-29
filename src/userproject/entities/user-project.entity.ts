@@ -1,6 +1,7 @@
 import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { User } from 'src/users/entities/user.entity';
-import { Project } from 'src/project/entities/project.entity';
+import { User } from '../../users/entities/user.entity';
+import { Project } from '../../project/entities/project.entity';
+
 @Entity({
   name: 'user_project',
 })

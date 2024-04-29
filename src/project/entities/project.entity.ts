@@ -8,12 +8,12 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { User } from 'src/users/entities/user.entity';
-import { Team } from 'src/team/entities/team.entity';
-import { Task } from 'src/task/entities/task.entity';
-import { Userproject } from 'src/userproject/entities/user-project.entity';
+import { User } from '../../users/entities/user.entity';
+import { Team } from '../../team/entities/team.entity';
+import { Task } from '../../task/entities/task.entity';
+import { Userproject } from '../../userproject/entities/user-project.entity';
 
-enum ProjectStatus {
+export enum ProjectStatus {
   CREATED = 'created',
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
@@ -21,7 +21,7 @@ enum ProjectStatus {
 @Entity()
 export class Project {
   @PrimaryGeneratedColumn()
-  readonly id: number;
+  id: number;
 
   @Column({ nullable: false })
   name: string;
