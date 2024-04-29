@@ -10,7 +10,11 @@ import { TaskService } from 'src/task/task.service';
 import { UserComment } from 'src/notification/serviceBasedEmail/userHasComment';
 import { UsersService } from 'src/users/users.service';
 import { ProjectService } from 'src/project/project.service';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Comment } from './entities/comment.entity';
 
+@ApiTags('Comments')
+@ApiBearerAuth()
 @UseGuards(AuthGuard)
 @Controller('/comments')
 export class CommentsController {
@@ -19,6 +23,9 @@ export class CommentsController {
 
   @UseGuards(AdminGuard)
   @Get()
+  @ApiResponse({status:200,description:"List of comments"})
+  @ApiForbiddenResponse({description:"Only admin can access."})
+  @ApiUnauthorizedResponse({description:"Missing or invalid token."})
   async findAll(@Req() req, @Res() res) {
     try{
       const result = await this.commentsService.findAll();
@@ -30,6 +37,8 @@ export class CommentsController {
   }
 
   @Get('/my')
+  @ApiOkResponse({description:"List of your comments."})
+  @ApiUnauthorizedResponse({description:"Missing or invalid token."})
   async findMyComments(@Req() req,@Res() res){
     try{
       const result=await this.commentsService.findByEmp(req.user.id);
@@ -41,6 +50,9 @@ export class CommentsController {
   }
 
   @Get(':task_id')
+  @ApiOkResponse({description:"List of comments of a task."})
+  @ApiUnauthorizedResponse({description:"Missing or invalid token."})
+  @ApiForbiddenResponse({description:"Task is of others."})
   async findAllCommentsByTask(@Param('task_id') task_id: string,@Req() req, @Res() res) {
     try{
       const task=await this.taskService.findOne(+task_id);
@@ -78,6 +90,9 @@ export class CommentsController {
   }
 
   @Post()
+  @ApiCreatedResponse({description:"Comment added."})
+  @ApiUnauthorizedResponse({description:"Missing or invalid token."})
+  @ApiForbiddenResponse({description:"PM or employee can comment on their tasks."})
   async create(@Body() createCommentDto: CreateCommentDto,@Req() req, @Res() res) {
     const {task_id}=createCommentDto;
     try{ 
@@ -111,6 +126,10 @@ export class CommentsController {
   }
 
   @Patch(':id')
+  @ApiUnauthorizedResponse({description:"Missing or invalid token."})
+  @ApiOkResponse({description:"Comment updated."})
+  @ApiNotFoundResponse({description:"Comment with given id not found."})
+  @ApiForbiddenResponse({description:"Comment is of others."})
   async update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto,@Req() req,@Res() res) {
     try{
       let affected=await this.commentsService.updateWithEmpId(+id,req.user.id,updateCommentDto);
