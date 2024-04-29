@@ -9,9 +9,10 @@ import { CreateTimeTrackingDto } from './dto/create-time-tracking.dto';
 import { UpdateTimeTrackingDto } from './dto/update-time-tracking.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TaskHour } from './entities/time-tracking.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository, getConnection } from 'typeorm';
 import { httpStatusCodes } from 'utils/sendresponse';
 import { TaskUser } from 'src/task/entities/task-user.entity';
+import dataSource, { dataSourceOptions } from 'db/data-source';
 
 @Injectable()
 export class TimeTrackingService {
@@ -65,16 +66,18 @@ export class TimeTrackingService {
       const result = await this.taskHourRepository.createQueryBuilder('taskHour')
         .select('user1.user_id', 'userId')
         // .addSelect('user1.task_id', 'taskId')
-        .addSelect('SUM(taskHour.hours)', 'hours')
+        .addSelect('CAST(SUM(taskHour.hours) as INTEGER)', 'hours')
         .leftJoin('taskHour.taskUser_id', 'user1')
         .where('user1.task_id = :task_id', { task_id:task_id })
         .groupBy('user1.user_id')
-        .addGroupBy('user1.task_id')
+        // .addGroupBy('user1.task_id')
         .getRawMany();
 
-      const r2 = await this.taskHourRepository
+    const r2 = await this.taskHourRepository
         .createQueryBuilder('th')
-        .select('SUM(th.hours)', 'hours')
+        .select('CAST(SUM(th.hours) as INTEGER)', 'hours')
+        .leftJoin('th.taskUser_id','tu')
+        .where('tu.task_id = :task_id',{task_id:task_id})
         .getRawOne();
 
       return { result:result, total_hours: r2.hours };
