@@ -85,7 +85,7 @@ export class UsersService {
       }
       const update = await this.userRepository.update({ id }, updateUserDto);
       if (update.affected === 0) {
-        throw new BadRequestException('No User With The given ID');
+        throw new NotFoundException('No User With The given ID');
       }
       const user = await this.userRepository.findOneBy({ id });
       return user;
@@ -98,7 +98,7 @@ export class UsersService {
     try {
       const deleted = await this.userRepository.softDelete({ id });
       if (deleted.affected === 0) {
-        throw new BadRequestException("No User With The Given ID")
+        throw new NotFoundException("No User With The Given ID")
       }
       return deleted.affected
     } catch (error) {
