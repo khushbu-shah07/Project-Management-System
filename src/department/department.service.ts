@@ -96,6 +96,7 @@ export class DepartmentService {
     try {
       const isExists = await this.findUserInDepartment(departmentUserData.department_id, departmentUserData.user_id);
       if (isExists > 0) throw new BadRequestException('User already exists in this departmnet');
+      await this.findOne(departmentUserData.department_id);
       const departmentUser = await this.departmentUserRepository.create(departmentUserData as unknown as DepartmentUser)
       await this.departmentUserRepository.save(departmentUser)
       return departmentUser;

@@ -32,8 +32,8 @@ export class UserprojectController {
   constructor(
     private readonly userprojectService: UserprojectService,
     @Inject(forwardRef(() => ProjectService)) private readonly projectService: ProjectService,
-    private readonly usersService:UsersService
-  ) {}
+    private readonly usersService: UsersService
+  ) { }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
@@ -43,23 +43,22 @@ export class UserprojectController {
     @Res() res: Response,
   ) {
     try {
-      const userproject =
-        await this.userprojectService.create(createUserprojectDto);
+      const userDetail = await this.usersService.findOne(createUserprojectDto.user_id);
+      const userEmail = userDetail.email;
 
-        const userDetail =await this.usersService.findOne(createUserprojectDto.user_id);
-        const userEmail = userDetail.email;
-        
-       const pmOrAdminDetail=req['user'];
-      console.log('b',pmOrAdminDetail)
+      const pmOrAdminId = req['user'].id;
+      // console.log('b', pmOrAdminId)
 
-      const pmOrAdminEmail=pmOrAdminDetail.email
-        
+      const pmOrAdminDetail=await this.usersService.findOne(pmOrAdminId);
+      const pmOrAdminEmail=pmOrAdminDetail.email;
 
-       const projectDetail =await this.projectService.findOne(createUserprojectDto.project_id);
-       const projectName = projectDetail.name
 
-        
-       sendNotifyEmail(pmOrAdminEmail,userEmail,`You have been added in project`,`None`,`${projectName}`)
+
+      const projectDetail = await this.projectService.findOne(createUserprojectDto.project_id);
+      const projectName = projectDetail.name
+
+
+      sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been added in project`, `None`, `${projectName}`)
 
       const { project_id, user_id } = createUserprojectDto;
 
@@ -97,23 +96,22 @@ export class UserprojectController {
     @Res() res: Response,
   ) {
     try {
-      await this.userprojectService.removeUserFromProject(userProjectData);
-
-       
-      const userDetail =await this.usersService.findOne(userProjectData.user_id);
+     
+      const userDetail = await this.usersService.findOne(userProjectData.user_id);
       const userEmail = userDetail.email;
-      
-     const pmOrAdminDetail=req['user'];
-    console.log('b',pmOrAdminDetail)
 
-    const pmOrAdminEmail=pmOrAdminDetail.email
-      
+      const pmOrAdminId = req['user'].id;
+      // console.log('b', pmOrAdminId)
 
-     const projectDetail =await this.projectService.findOne(userProjectData.project_id);
-     const projectName = projectDetail.name
+      const pmOrAdminDetail=await this.usersService.findOne(pmOrAdminId);
+      const pmOrAdminEmail=pmOrAdminDetail.email;
 
-      
-     sendNotifyEmail(pmOrAdminEmail,userEmail,`You have been removed from project`,`None`,`${projectName}`)
+
+      const projectDetail = await this.projectService.findOne(userProjectData.project_id);
+      const projectName = projectDetail.name
+
+
+      sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been removed from project`, `None`, `${projectName}`)
 
       const project = await this.projectService.findOne(
         userProjectData.project_id,
@@ -137,7 +135,7 @@ export class UserprojectController {
         null,
       );
     } catch (error) {
-      throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -188,7 +186,7 @@ export class UserprojectController {
       );
     } catch (error) {
 
-        throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
 
     }
   }
@@ -213,7 +211,7 @@ export class UserprojectController {
       );
     } catch (error) {
 
-        throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
 
     }
   }
