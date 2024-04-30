@@ -149,7 +149,7 @@ export class TimeTrackingController {
         httpStatusCodes.OK,
         'success',
         'Updated timetrack details',
-        updatedData,
+        {updated:updatedData},
       );
     } catch (err) {
       throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])

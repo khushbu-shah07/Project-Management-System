@@ -40,7 +40,7 @@ export class TimeTrackingService {
     }
   }
 
-  async getTaskHoursByTask(task_id: number) : Promise<{result:TaskUser[],total_hours:number}> {
+  async getTaskHoursByTask(task_id: number) : Promise<{result:{userId:number;workedHours:number}[];totalHours:number}> {
     try {
       // const result = await this.taskHourRepository.find({
       //   where:{taskUser_id:{
@@ -67,7 +67,7 @@ export class TimeTrackingService {
       const result = await this.taskHourRepository.createQueryBuilder('taskHour')
         .select('user1.user_id', 'userId')
         // .addSelect('user1.task_id', 'taskId')
-        .addSelect('CAST(SUM(taskHour.hours) as INTEGER)', 'hours')
+        .addSelect('CAST(SUM(taskHour.hours) as INTEGER)', 'workedHours')
         .leftJoin('taskHour.taskUser_id', 'user1')
         .where('user1.task_id = :task_id', { task_id:task_id })
         .groupBy('user1.user_id')
@@ -81,7 +81,7 @@ export class TimeTrackingService {
         .where('tu.task_id = :task_id',{task_id:task_id})
         .getRawOne();
 
-      return { result:result, total_hours: r2.hours };
+      return { result:result, totalHours: r2.hours as number };
     } catch (err) {
       throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
@@ -91,7 +91,7 @@ export class TimeTrackingService {
     id: number,
     user_id: number,
     updateTimeTrackingDto: UpdateTimeTrackingDto,
-  ) {
+  ):Promise<number> {
     try {
       const taskuser = await this.taskHourRepository.exists({
         relations: [
@@ -120,7 +120,7 @@ export class TimeTrackingService {
         );
         if (update.affected === 0)
           throw new NotFoundException('No record found for updating');
-        return update;
+        return update.affected;
       }
     } catch (err) {
       throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
@@ -128,7 +128,7 @@ export class TimeTrackingService {
   }
 
   // get total loghrs of all tasks of user from userId (can only be accessed by particular pm of that task)
-  async findOne(userId: number, pm_id: number) {
+  async findOne(userId: number, pm_id: number):Promise<{result:{taskId:number,workedHours:number}[],totalHours:number}> {
     try {
       const queryBuilder =
         await this.taskHourRepository.createQueryBuilder('taskHour');
@@ -136,7 +136,7 @@ export class TimeTrackingService {
       const individualRecords = await queryBuilder
       // .select('user1.user_id', 'userId')
         .select('user1.task_id', 'taskId')
-        .addSelect('CAST(SUM(taskHour.hours) as INTEGER)', 'WorkingHours')
+        .addSelect('CAST(SUM(taskHour.hours) as INTEGER)', 'workedHours')
         .leftJoin('taskHour.taskUser_id', 'user1')
         .leftJoin('user1.task_id', 'task')
         .leftJoin('task.project_id', 'project')
@@ -146,24 +146,24 @@ export class TimeTrackingService {
         .addGroupBy('user1.task_id')
         .getRawMany();
 
-      const totalHours = individualRecords.reduce((acc, record) => {
-        const hours = record.WorkingHours;
+      const totalHours:number = individualRecords.reduce((acc, record) => {
+        const hours = record.workedHours;
         return acc + +hours;
       }, 0);
 
-      return { individualRecords, totalHours };
+      return { result:individualRecords, totalHours };
     } catch (err) {
       throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async getByProject(project_id:number):Promise<{result:TaskUser[],total_hours:number}>{
+  async getByProject(project_id:number):Promise<{result:{taskId:number,status:string,workedHours:number}[],totalHours:number}>{
     try{
 
       const result = await this.taskHourRepository.createQueryBuilder('taskHour')
-        .select('user1.task_id', 'task_id')
+        .select('user1.task_id', 'taskId')
         .addSelect('MAX(task.status)','status')
-        .addSelect('CAST(SUM(taskHour.hours) as INTEGER)', 'hours')
+        .addSelect('CAST(SUM(taskHour.hours) as INTEGER)', 'workedHours')
         .leftJoin('taskHour.taskUser_id', 'user1')
         .leftJoin('user1.task_id','task')
         .where('task.project_id = :project_id', { project_id:project_id })
@@ -172,9 +172,9 @@ export class TimeTrackingService {
         .getRawMany();
 
       
-      const total_hours=result.reduce((acc,row)=>acc+(+row.hours),0);
+      const totalHours:number=result.reduce((acc,row)=>acc+(+row.workedHours),0);
 
-      return {result:result,total_hours};
+      return {result:result,totalHours:totalHours};
     }
     catch(err){
       throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
