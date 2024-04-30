@@ -17,6 +17,7 @@ import { TaskUser } from './entities/task-user.entity';
 import { UserprojectModule } from 'src/userproject/userproject.module';
 import { ProjectModule } from 'src/project/project.module';
 import { ForbiddenException, HttpException } from '@nestjs/common';
+import { UpdateTaskDto } from './dto/update-task.dto';
 
 describe('TaskController', () => {
   let taskController: TaskController;
@@ -78,10 +79,17 @@ describe('TaskController', () => {
     updatedAt: new Date().toISOString(),
     pm_id:{id:1}
   }
+
   let mockUserProject = {
     id:1,
     user_id:2,
     project_id:3
+  }
+
+  let mockTaskUser = {
+    id:1,
+    user_id:2,
+    task_id:3
   }
 
   let mockTaskService = {
@@ -91,7 +99,8 @@ describe('TaskController', () => {
     remove: jest.fn().mockResolvedValue({ affected: 1 }),
     update: jest.fn().mockResolvedValue({affected:1}),
     getAllTaskByPriority: jest.fn().mockResolvedValue([mockTask]),
-    getAllProjectTasks:jest.fn().mockResolvedValue([mockTask])
+    getAllProjectTasks:jest.fn().mockResolvedValue([mockTask]),
+    findTaskUser:jest.fn().mockResolvedValue(1)
 
   }
 
@@ -269,7 +278,7 @@ describe('TaskController', () => {
     })
   })
 
-  //Get Project tasks
+  //Test case for Get Project tasks
   describe("Get Tasks of Project",()=>{
     it("should allow admin to find all tasks of a project",async()=>{
       try {
@@ -378,4 +387,166 @@ describe('TaskController', () => {
 
   })
 
+  //Test case for Get Single Task
+  describe("Get Single Task by id",()=>{
+    it("should allow admin to find single task",async()=>{
+      try {
+        const req = getMockAuthentiatedRequest({}, 1, 'admin');
+        const res = getMockResponse();
+        await taskController.findOne(`${mockTask.id}`,req,res)
+        expect(mockTaskService.findOne).toHaveBeenCalledWith(mockTask.id)
+        expect(res.json).toHaveBeenCalledWith({
+          operation:'Get Single Task',
+          status:"success",
+          data:mockTask
+        })
+        expect(res.status).toHaveBeenCalledWith(200)
+      } catch (error) {
+        expect(error)
+      }
+    })
+    it("should allow pm of a project to find single task",async()=>{
+      try {
+        const req = getMockAuthentiatedRequest({}, 1, 'pm');
+        const res = getMockResponse();
+        await taskController.findOne(`${mockTask.id}`,req,res)
+        expect(mockTaskService.findOne).toHaveBeenCalledWith(mockTask.id)
+        expect(res.json).toHaveBeenCalledWith({
+          operation:'Get Single Task',
+          status:"success",
+          data:mockTask
+        })
+        expect(res.status).toHaveBeenCalledWith(201)
+      } catch (error) {
+        expect(error)
+      }
+    })
+    it("should allow employee of a project to find single task",async()=>{
+      try {
+        const user_id =  1;
+        const req = getMockAuthentiatedRequest({}, user_id, 'employee');
+        const res = getMockResponse();
+        await taskController.findOne(`${mockTask.id}`,req,res)
+        expect(mockTaskService.findOne).toHaveBeenCalledWith(mockTask.id)
+        expect(mockTaskService.findTaskUser).toHaveBeenCalledWith(mockTask.id,user_id)
+        expect(res.json).toHaveBeenCalledWith({
+          operation:'Get Single Task',
+          status:"success",
+          data:mockTask
+        })
+        expect(res.status).toHaveBeenCalledWith(201)
+      } catch (error) {
+        expect(error)
+      }
+    })
+    it("should throw forbidden exception for non admin non pm user of a project and non employee of a project",async()=>{
+      const req = getMockAuthentiatedRequest({}, 1, "user")
+      const res = getMockResponse()
+      const errorMessage = "Access Denied to Fetch Single Task"
+      try {
+        await taskController.findOne(`${mockTask.id}`,req,res)
+      } catch (error) {
+        expect(error).toBeInstanceOf(ForbiddenException);
+        expect(error.message).toBe(errorMessage);
+        expect(error.getStatus()).toBe(403)
+      }
+    })
+    it('should throw http exception for any other errors', async () => {
+      const req = getMockAuthentiatedRequest({}, 1, "user")
+      const res = getMockResponse()
+      const errorMessage = 'Some error occurred';
+      mockTaskService.findOne.mockRejectedValueOnce({ message: errorMessage, status: 400 });
+      try {
+        await taskController.findOne(`${mockTask.id}`,req,res)
+      } catch (error) {
+        expect(error).toBeInstanceOf(HttpException);
+        expect(error.message).toBe(errorMessage);
+        expect(error.getStatus()).toBe(400)
+      }
+    })
+  })
+
+  describe("Update Task",()=>{
+    it("should allow admin to upate task",async()=>{
+      const updatedTaskData:UpdateTaskDto = {
+        title:"Updated Task",
+        description:"This is updated Task"
+      }
+      const req = getMockAuthentiatedRequest({}, 1, 'admin');
+      const res = getMockResponse();
+      await taskController.update(`${mockTask.id}`,updatedTaskData,req,res)
+      expect(mockTaskService.findOne).toHaveBeenCalledWith(mockTask.id)
+      expect(mockTaskService.update).toHaveBeenCalledWith(mockTask.id,updatedTaskData)
+      expect(res.json).toHaveBeenCalledWith({
+        operation:'Update Task',
+        status:"success",
+        data:null
+      })
+      expect(res.status).toHaveBeenCalledWith(200)
+    })
+    it("should allow pm of the project to upate task",async()=>{
+      const updatedTaskData:UpdateTaskDto = {
+        title:"Updated Task",
+        description:"This is updated Task"
+      }
+      const task = {
+        id:1,
+        title:"Task1",
+        description:"This is Task",
+        project_id: {
+          pm_id: { id: 1 } 
+        }
+      }
+      try {  
+        const req = getMockAuthentiatedRequest({}, 1, 'pm');
+        const res = getMockResponse();
+        mockTaskService.findOne.mockResolvedValue(task)
+        await taskController.update(`${task.id}`,updatedTaskData,req,res)
+        expect(mockTaskService.findOne).toHaveBeenCalledWith(task.id)
+        expect(mockTaskService.update).toHaveBeenCalledWith(task.id,updatedTaskData)
+        expect(res.json).toHaveBeenCalledWith({
+          operation:'Update Task',
+          status:"success",
+          data:null
+        })
+        expect(res.status).toHaveBeenCalledWith(200) 
+      } catch (error) {
+          expect(error)
+      }
+    })
+    it("should throw forbidden exception for non-admin user or non pm user",async()=>{
+      const updatedTaskData:UpdateTaskDto = {
+        title:"Updated Task",
+        description:"This is updated Task"
+      }
+      const req = getMockAuthentiatedRequest({}, 1, "user")
+      const res = getMockResponse()
+      const errorMessage = "Access Denied to Update Project"
+      try {
+        await taskController.update(`${mockTask.id}`,updatedTaskData,req,res)
+      } catch (error) {
+        expect(error).toBeInstanceOf(ForbiddenException);
+        expect(error.message).toBe(errorMessage);
+        expect(error.getStatus()).toBe(403)
+      }
+    })
+    it('should throw http exception for any other errors', async () => {
+      const updatedTaskData:UpdateTaskDto = {
+        title:"Updated Task",
+        description:"This is updated Task"
+      }
+      const req = getMockAuthentiatedRequest({}, 1, "user")
+      const res = getMockResponse()
+      const errorMessage = 'Some error occurred';
+      mockTaskService.update.mockRejectedValueOnce({ message: errorMessage, status: 400 });
+      try {
+        await taskController.update(`${mockTask.id}`,updatedTaskData,req,res)
+      } catch (error) {
+        expect(error).toBeInstanceOf(HttpException);
+        expect(error.message).toBe(errorMessage);
+        expect(error.getStatus()).toBe(400)
+      }
+    })
+
+  })
 });
