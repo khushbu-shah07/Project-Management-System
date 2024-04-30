@@ -32,12 +32,12 @@ import { EndDateValidationPipe } from '../Pipes/endDatePipe';
 
 @Controller('projects')
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService, private readonly userProject:UserprojectService , private readonly usersService:UsersService ) { }
+  constructor(private readonly projectService: ProjectService, private readonly userProject: UserprojectService, private readonly usersService: UsersService) { }
 
   @UseGuards(AuthGuard, ProjectManagerGuard)
   @Post()
   async create(
-    @Body(StartDateValidationPipe,EndDateValidationPipe) createProjectDto: CreateProjectDto,
+    @Body(StartDateValidationPipe, EndDateValidationPipe) createProjectDto: CreateProjectDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
@@ -185,46 +185,48 @@ export class ProjectController {
     @Res() res: Response
   ) {
     const project = await this.projectService.findOne(+id);
-      
+
     if (!project) {
-       throw new NotFoundException('Project with given id does not exists');
+      throw new NotFoundException('Project with given id does not exists');
+    }
 
     if (req['user'].role === 'pm') {
       if (req['user'].id !== project.pm_id.id) {
         throw new ForbiddenException('Access denied to change the project status');
       }
     }
-    await this.projectService.completeProject(+id);
-     
-    const pmOrAdminEmail=project.pm_id.email;
-    const projectId=project.id;
-    const projectName=project.name
-  
-    const allUsersInProject=await this.userProject.getUsersFromProject(projectId)
     
- const allUsersId=[];
-     for(const user in allUsersInProject){
-      const userID=allUsersInProject[user].user_detail.user_id;
-        if(userID){
-          allUsersId.push(userID)
-        }
-     }
+    await this.projectService.completeProject(+id);
 
-    let allUsersEmail=[] ;
-    for(const userId in allUsersId){
-       const usersDetail=await this.usersService.findOne(Number(allUsersId[userId]));
-       allUsersEmail.push(usersDetail.email)
+    const pmOrAdminEmail = project.pm_id.email;
+    const projectId = project.id;
+    const projectName = project.name
+
+    const allUsersInProject = await this.userProject.getUsersFromProject(projectId)
+
+    const allUsersId = [];
+    for (const user in allUsersInProject) {
+      const userID = allUsersInProject[user].user_detail.user_id;
+      if (userID) {
+        allUsersId.push(userID)
+      }
+    }
+
+    let allUsersEmail = [];
+    for (const userId in allUsersId) {
+      const usersDetail = await this.usersService.findOne(Number(allUsersId[userId]));
+      allUsersEmail.push(usersDetail.email)
 
     }
-    console.log("all users",allUsersEmail)
-    ProjectStatus.projectStatusUpdate(pmOrAdminEmail,allUsersInProject,'completed',projectName,this.usersService)
+    console.log("all users", allUsersEmail)
+    ProjectStatus.projectStatusUpdate(pmOrAdminEmail, allUsersInProject, 'completed', projectName, this.usersService)
 
     return sendResponse(
       res,
       httpStatusCodes.OK,
       'success',
       'Complete project',
-       allUsersInProject
+      allUsersInProject
     )
   }
 
