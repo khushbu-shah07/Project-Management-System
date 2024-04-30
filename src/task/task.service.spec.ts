@@ -546,4 +546,139 @@ describe('<-- TaskService -->', () => {
       })
     })
   })
+
+  describe('taskBelongsToPM', () => {
+    it('should return true if task belongs to pm', async () => {
+      const task_id = 1;
+      const pm_id = 2;
+      const expectedResult = true;
+
+      mockTaskRepository.exists.mockResolvedValue(expectedResult);
+
+      const result = await service.taskBelongsToPM(task_id, pm_id);
+      expect(result).toEqual(expectedResult);
+      expect(mockTaskRepository.exists).toHaveBeenCalledWith({
+        where: {
+          id: task_id,
+          project_id: {
+            pm_id: {
+              id: pm_id
+            }
+          }
+        },
+        relations: ['project_id', 'project_id.pm_id']
+      })
+    })
+
+    it('should handle database errors', async () => {
+      const task_id = 1;
+      const pm_id = 2;
+      const error = new Error('Database connection error');
+
+      mockTaskRepository.exists.mockRejectedValue(error);
+
+      await expect(service.taskBelongsToPM(task_id, pm_id)).rejects.toThrow(HttpException);
+      expect(mockTaskRepository.exists).toHaveBeenCalledWith({
+        where: {
+          id: task_id,
+          project_id: {
+            pm_id: {
+              id: pm_id
+            }
+          }
+        },
+        relations: ['project_id', 'project_id.pm_id']
+      })
+    })
+  })
+
+  describe('getAllProjectTasks', () => {
+    it('should return all tasks of the project', async () => {
+      const project_id = 1;
+      const expectedResult = [
+        {
+          id: 1,
+          title: 'test task 1'
+        },
+        {
+          id: 2,
+          title: 'test task 2'
+        }
+      ]
+
+      mockTaskRepository.find.mockResolvedValue(expectedResult);
+
+      const result = await service.getAllProjectTasks(project_id);
+      expect(result).toEqual(expectedResult);
+      expect(mockTaskRepository.find).toHaveBeenCalledWith({
+        where: {
+          project_id: {
+            id: project_id
+          }
+        }
+      })
+    })
+
+    it('should handle database errors', async () => {
+      const project_id = 1;
+      const error = new Error('Database connection error');
+
+      mockTaskRepository.find.mockRejectedValue(error);
+
+      await expect(service.getAllProjectTasks(project_id)).rejects.toThrow(HttpException);
+      expect(mockTaskRepository.find).toHaveBeenCalledWith({
+        where: {
+          project_id: {
+            id: project_id
+          }
+        }
+      })
+    })
+  })
+
+  describe('getAllTaskByPriority', () => {
+    it('should return all the task with given priority', async () => {
+      const priority = 'high';
+      const expectedResult = [
+        {
+          id: 4,
+          title: 'test task',
+          priority: 'high'
+        },
+        {
+          id: 9,
+          title: 'test task',
+          priority: 'high'
+        },
+        {
+          id: 17,
+          title: 'test task',
+          priority: 'high'
+        }
+      ]
+
+      mockTaskRepository.find.mockResolvedValue(expectedResult);
+
+      const result = await service.getAllTaskByPriority(priority);
+      expect(result).toEqual(expectedResult);
+      expect(mockTaskRepository.find).toHaveBeenCalledWith({
+        where: {
+          priority
+        }
+      })
+    })
+    it('handle database errors', async () => {
+      const priority = 'high';
+      const error = new Error('Database connection error');
+
+      mockTaskRepository.find.mockRejectedValue(error);
+
+      await expect(service.getAllTaskByPriority(priority)).rejects.toThrow(HttpException);
+      expect(mockTaskRepository.find).toHaveBeenCalledWith({
+        where: {
+          priority
+        }
+      })
+    })
+  })
 });
