@@ -185,7 +185,7 @@ export class ProjectController {
     try {
       const project = await this.projectService.findOne(+id);
 
-      if(!project) {
+      if (!project) {
         throw new NotFoundException('Project with given id does not exists');
       }
 
@@ -202,6 +202,33 @@ export class ProjectController {
         'success',
         'Complete project',
         null
+      )
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    }
+  }
+
+  @UseGuards(AuthGuard, AdminProjectGuard)
+  @Get('/pm/:id')
+  async getAllProjectsByPmId(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Param('id') id: string
+  ) {
+    try {
+      if (req['user']?.role === 'pm') {
+        if (req['user']?.id !== parseInt(id)) {
+          throw new ForbiddenException('Access Denied')
+        }
+      }
+
+      const projects = await this.projectService.getAllProjectsByPmId(+id);
+      return sendResponse(
+        res,
+        httpStatusCodes['OK'],
+        'success',
+        'Get all projects by pm id',
+        projects
       )
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
