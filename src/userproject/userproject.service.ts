@@ -38,8 +38,9 @@ export class UserprojectService {
       const mappedUsers = users.map((user) => ({
         id: user.id,
         user_detail: {
-          user_id: user.user_id.id,
-          name: user.user_id.name,
+          user_id: user.user_id ? user.user_id.id : null,
+          name: user.user_id ? user.user_id.name : null,
+
         },
       }));
       return mappedUsers;

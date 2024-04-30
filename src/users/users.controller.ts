@@ -7,13 +7,25 @@ import { httpStatusCodes, sendResponse } from "../../utils/sendresponse";
 import { AuthGuard } from '../auth/Guards/auth.guard';
 import { AdminGuard } from '../auth/Guards/admin.guard';
 import { User } from './entities/user.entity';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
+  //create User
   @UseGuards(AuthGuard,AdminGuard)
   @Post()
+  @ApiOperation({ summary: 'Create User' })
+  @ApiCreatedResponse({ status: 201, description: 'User Created' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
+  @ApiResponse({ status: 400, description: 'BadRequest Exception' })
+  @ApiBody({
+    description: 'User details',
+    type: CreateUserDto,
+  })
   async create(@Body() createUserDto: CreateUserDto, @Req() req: Request, @Res() res: Response) {
     try {
       const user = await this.usersService.create(createUserDto)
@@ -23,8 +35,13 @@ export class UsersController {
     }
   }
 
+  // Get all Users
   @UseGuards(AuthGuard, AdminGuard)
   @Get()
+  @ApiOperation({ summary: 'Get all users' })
+  @ApiResponse({ status: 200, description: 'List of users' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
+  @ApiResponse({ status: 400, description: 'BadRequest Exception' }) 
   async findAll(@Req() req: Request, @Res() res: Response) {
     try {
       const users = await this.usersService.findAll()
@@ -33,8 +50,15 @@ export class UsersController {
       throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
     }
   }
+
+  //Get Single User
   @UseGuards(AuthGuard)
   @Get(':id')
+  @ApiOperation({ summary: 'Get Single user' })
+  @ApiResponse({ status: 200, description: 'Single user Found' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
+  @ApiResponse({ status: 400, description: 'BadRequest Exception' })
+  @ApiResponse({ status: 404, description: 'Not Found' })
   async findOne(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
       const user = await this.usersService.findOne(+id)
@@ -48,11 +72,21 @@ export class UsersController {
       throw new HttpException(error.message,error.status||httpStatusCodes['Bad Request'])
     }
   }
+
+  //Update User
   @UseGuards(AuthGuard)
   @Patch(':id')
+  @ApiOperation({ summary: 'Update User' })
+  @ApiResponse({ status: 200, description: 'Update user' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
+  @ApiResponse({ status: 400, description: 'BadRequest Exception' })
+  @ApiResponse({ status: 404, description: 'Not Found'})
   async update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto, @Req() req: Request, @Res() res: Response) {
     try {
       let data: User
+      if(req.body.email||req.body.role){
+        throw new ForbiddenException("You can not update email or role")
+      }
       if (req['user'].role === 'admin') {
         data = await this.usersService.update(+id, updateUserDto)
       }
@@ -69,8 +103,15 @@ export class UsersController {
       throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
     }
   }
+
+  //Delete User
   @UseGuards(AuthGuard)
   @Delete(":id")
+  @ApiOperation({ summary: 'Delete User' })
+  @ApiResponse({ status: 200, description: 'Delete user' })
+  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
+  @ApiResponse({ status: 400, description: 'BadRequest Exception' })
+  @ApiResponse({ status: 404, description: 'Not Found'})
   async remove(@Req() req: Request, @Res() res: Response, @Param('id') id: string) {
     try {
       let data: Number;

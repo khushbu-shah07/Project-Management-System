@@ -1,7 +1,7 @@
 import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Task, TaskStatus } from './entities/task.entity';
+import { Task, TaskPriority, TaskStatus } from './entities/task.entity';
 import { TaskUser } from './entities/task-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -148,7 +148,6 @@ export class TaskService {
         status: ProjectStatus.IN_PROGRESS
       })
 
-
       return taskUser;
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
@@ -214,6 +213,19 @@ export class TaskService {
       return tasks
     } catch (error) {
       throw new BadRequestException(error.message)
+
+    }
+  }
+
+  async getUsersInTask(taskId:number){
+    try{
+     const usersInTask=await this.taskUserRepository.find({where:{id:taskId}})
+     const userEmailsInTask=usersInTask.map((user)=>user.user_id.email);
+     return userEmailsInTask;
+    }
+    catch(error){
+      throw new BadRequestException(error.message)
+    }
   }
 }
-}
+
