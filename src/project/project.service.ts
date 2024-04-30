@@ -132,4 +132,19 @@ export class ProjectService {
       );
     }
   }
+
+  async getAllProjectsByPmId(pm_id: number): Promise<Project[]> {
+    try {
+      const projects = await this.projectRepository.find({
+        where: {
+          pm_id: {
+            id: pm_id
+          }
+        }
+      })
+      return projects;
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    }
+  }
 }
