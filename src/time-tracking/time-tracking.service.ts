@@ -134,15 +134,15 @@ export class TimeTrackingService {
         await this.taskHourRepository.createQueryBuilder('taskHour');
 
       const individualRecords = await queryBuilder
-        .select('user1.user_id', 'userId')
-        .addSelect('user1.task_id', 'taskId')
-        .addSelect('SUM(taskHour.hours)', 'WorkingHours')
+      // .select('user1.user_id', 'userId')
+        .select('user1.task_id', 'taskId')
+        .addSelect('CAST(SUM(taskHour.hours) as INTEGER)', 'WorkingHours')
         .leftJoin('taskHour.taskUser_id', 'user1')
         .leftJoin('user1.task_id', 'task')
         .leftJoin('task.project_id', 'project')
         .where('user1.user_id = :userId', { userId })
         .andWhere('project.pm_id=:pm_id', { pm_id: pm_id })
-        .groupBy('user1.user_id')
+        // .groupBy('user1.user_id')
         .addGroupBy('user1.task_id')
         .getRawMany();
 
@@ -163,7 +163,7 @@ export class TimeTrackingService {
       const result = await this.taskHourRepository.createQueryBuilder('taskHour')
         .select('user1.task_id', 'task_id')
         .addSelect('MAX(task.status)','status')
-        .addSelect('SUM(taskHour.hours)', 'hours')
+        .addSelect('CAST(SUM(taskHour.hours) as INTEGER)', 'hours')
         .leftJoin('taskHour.taskUser_id', 'user1')
         .leftJoin('user1.task_id','task')
         .where('task.project_id = :project_id', { project_id:project_id })
@@ -174,7 +174,7 @@ export class TimeTrackingService {
       
       const total_hours=result.reduce((acc,row)=>acc+(+row.hours),0);
 
-      return {result,total_hours};
+      return {result:result,total_hours};
     }
     catch(err){
       throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
