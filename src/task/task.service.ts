@@ -6,15 +6,14 @@ import { TaskUser } from './entities/task-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
-import { Project, ProjectStatus } from 'src/project/entities/project.entity';
-import { httpStatusCodes } from 'utils/sendresponse';
+import { Project, ProjectStatus } from '../../src/project/entities/project.entity';
+import { httpStatusCodes } from '../../utils/sendresponse';
 
 @Injectable()
 export class TaskService {
   constructor(@InjectRepository(Task) private readonly taskRepository: Repository<Task>,
     @InjectRepository(TaskUser) private readonly taskUserRepository: Repository<TaskUser>,
     @InjectRepository(Project) private readonly projectRepository: Repository<Project>) {
-
   }
   async create(createTaskDto: CreateTaskDto) {
     try {
