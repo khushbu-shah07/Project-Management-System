@@ -69,22 +69,22 @@ export class TaskService {
 
   async update(id: number, updateTaskDto: UpdateTaskDto) {
     try {
-      let startDate:Date;
+      let startDate: Date;
       if (updateTaskDto.expectedEndDate) {
         const endDate = new Date(updateTaskDto.expectedEndDate)
-        if(updateTaskDto.startDate){
+        if (updateTaskDto.startDate) {
           startDate = new Date(updateTaskDto.startDate)
-          if (endDate.getTime() < startDate.getTime()){
+          if (endDate.getTime() < startDate.getTime()) {
             throw new BadRequestException("Invalid End Date")
           }
         }
-        else{
+        else {
           const temp = await this.findOne(id)
           startDate = new Date(temp.startDate)
-          if (endDate.getTime() < startDate.getTime()){
+          if (endDate.getTime() < startDate.getTime()) {
             throw new BadRequestException("Invalid End Date")
           }
-        }  
+        }
       }
       const task = await this.taskRepository.update(id, updateTaskDto);
       if (task.affected === 0) throw new NotFoundException('Task with given id does not exists');
@@ -117,14 +117,14 @@ export class TaskService {
     }
   }
 
-  async findTaskUserRow(task_id:number,user_id:number){
-    try{
+  async findTaskUserRow(task_id: number, user_id: number) {
+    try {
       return await this.taskUserRepository
-      .createQueryBuilder('tu')
-      .where('tu.task_id = :taskId', { taskId: task_id })
-      .andWhere('tu.user_id = :userId', { userId: user_id }).getOne();
+        .createQueryBuilder('tu')
+        .where('tu.task_id = :taskId', { taskId: task_id })
+        .andWhere('tu.user_id = :userId', { userId: user_id }).getOne();
     }
-    catch(error){
+    catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
@@ -178,18 +178,20 @@ export class TaskService {
     }
   }
 
-  async taskBelongsToPM(task_id:number,pm_id:number){
-    try{
+  async taskBelongsToPM(task_id: number, pm_id: number) {
+    try {
       return await this.taskRepository.exists({
-        where:{id:task_id,project_id:{
-          pm_id:{
-            id:pm_id,
+        where: {
+          id: task_id, project_id: {
+            pm_id: {
+              id: pm_id,
+            }
           }
-        }},
-        relations:['project_id','project_id.pm_id'],
+        },
+        relations: ['project_id', 'project_id.pm_id'],
       })
     }
-    catch(error){
+    catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
@@ -203,7 +205,7 @@ export class TaskService {
       })
       return projectTasks;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -212,19 +214,55 @@ export class TaskService {
       const tasks = await this.taskRepository.find({ where: { priority: priority as any } })
       return tasks
     } catch (error) {
-      throw new BadRequestException(error.message)
-
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async getUsersInTask(taskId:number){
-    try{
-     const usersInTask=await this.taskUserRepository.find({where:{id:taskId}})
-     const userEmailsInTask=usersInTask.map((user)=>user.user_id.email);
-     return userEmailsInTask;
+  async getUsersInTask(taskId: number) {
+    try {
+      const usersInTask = await this.taskUserRepository.find({ where: { id: taskId } })
+      const userEmailsInTask = usersInTask.map((user) => user.user_id.email);
+      return userEmailsInTask;
     }
-    catch(error){
-      throw new BadRequestException(error.message)
+    catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    }
+  }
+
+  async getAllTasksAssignedToUser(user_id: number): Promise<TaskUser[]> {
+    try {
+      const tasks = await this.taskUserRepository.find({
+        where: {
+          user_id: {
+            id: user_id
+          }
+        },
+        select: ['task_id']
+      })
+      return tasks;
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    }
+  }
+
+  async getAllTasksAssignedToUserFromProject(project_id: number, user_id: number):Promise<TaskUser[]> {
+    try {
+      const tasks = await this.taskUserRepository.find({
+        where: {
+          user_id: {
+            id: user_id
+          },
+          task_id: {
+            project_id: {
+              id: project_id
+            }
+          }
+        },
+        select: ['task_id']
+      })
+      return tasks;
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 }

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException,
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Request } from 'supertest';
+import { Request } from 'express';
 import { Response } from 'express';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
@@ -281,6 +281,65 @@ export class TaskController {
     const userEmailsInTask = await this.taskService.getUsersInTask(Number(id));
 
     return sendResponse(res, httpStatusCodes.OK, 'success', 'all users got', userEmailsInTask)
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/assigned/:id')
+  async getAllTasksOfUser(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Param('id') id: string
+  ) {
+    try {
+      if (req['user']?.role !== 'admin') {
+        if (req['user']?.id !== parseInt(id)) {
+          throw new ForbiddenException('Access Denied')
+        }
+      }
+
+      const tasks = await this.taskService.getAllTasksAssignedToUser(+id);
+      return sendResponse(
+        res,
+        httpStatusCodes.OK,
+        'success',
+        'Get all tasks assigned to user',
+        tasks
+      )
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    }
+  }
+
+  @UseGuards(AuthGuard, AdminProjectGuard)
+  @Get('/assigned/projects/:projectId/users/:userId')
+  async getAllTasksOfUserFromProject(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Param('projectId') projectId: string,
+    @Param('userId') userId: string
+  ) {
+    try {
+      const project = await this.projectService.findOne(+projectId);
+
+      if(!project) throw new BadRequestException('Project with given id does not exsits');
+
+      if (req['user']?.role ===  'pm') {
+        if(req['user']?.id !== project.pm_id.id) {
+          throw new ForbiddenException('Access Denied');
+        }
+      }
+
+      const tasks = await this.taskService.getAllTasksAssignedToUserFromProject(+projectId, +userId);
+      return sendResponse(
+        res,
+        httpStatusCodes.OK,
+        'success',
+        'Get all tasks assigned to user from project',
+        tasks
+      )
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    }
   }
 }
 
