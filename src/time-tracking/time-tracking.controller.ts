@@ -124,7 +124,7 @@ export class TimeTrackingController {
     }
   }
 
-  @Patch('/taskHours/:id')
+  @Patch('/:id')
   async update(
     @Param('id') id: number,
     @Body() updateTimeTrackingDto: UpdateTimeTrackingDto,
@@ -157,7 +157,7 @@ export class TimeTrackingController {
   }
 
   @UseGuards(AdminProjectGuard)
-  @Get('/taskHours/emp/:userId')
+  @Get('/emp/:userId')
   async getUserTimeLogs(
     @Param('userId') userId: number,
     @Req() req: Request,
