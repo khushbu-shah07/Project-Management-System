@@ -33,6 +33,7 @@ export class TimeTrackingController {
       }
       
       const task=await this.taskService.findOne(task_id);
+      
       if(task.status===TaskStatus.COMPLETED)
         throw new Error("Task is complemented so cannot add time log.")
       
@@ -149,7 +150,7 @@ export class TimeTrackingController {
         httpStatusCodes.OK,
         'success',
         'Updated timetrack details',
-        updatedData,
+        {updatedLog:updatedData.affected},
       );
     } catch (error) {
       throw new BadRequestException(error.message);

@@ -6,8 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from 'db/data-source';
 import { ProjectModule } from './project/project.module';
 import { AuthModule } from './auth/auth.module';
-import { AuthController } from './auth/auth.controller';
-import { UsersController } from './users/users.controller';
 import { DepartmentModule } from './department/department.module';
 import { TeamModule } from './team/team.module';
 import { UserprojectModule } from './userproject/userproject.module';

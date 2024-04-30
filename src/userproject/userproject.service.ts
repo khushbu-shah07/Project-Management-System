@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,6 +9,7 @@ import { UpdateUserprojectDto } from './dto/update-userproject.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Userproject } from './entities/user-project.entity';
 import { Repository } from 'typeorm';
+import { httpStatusCodes } from 'utils/sendresponse';
 
 @Injectable()
 export class UserprojectService {
@@ -23,24 +25,8 @@ export class UserprojectService {
       await this.userProjectRepository.save(userproject);
       return userproject;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
     }
-  }
-
-  findAll() {
-    return `This action returns all userproject`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} userproject`;
-  }
-
-  update(id: number, updateUserprojectDto: UpdateUserprojectDto) {
-    return `This action updates a #${id} userproject`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} userproject`;
   }
 
   async getUsersFromProject(projectId: number) {
@@ -52,13 +38,14 @@ export class UserprojectService {
       const mappedUsers = users.map((user) => ({
         id: user.id,
         user_detail: {
-          user_id: user.user_id.id,
-          name: user.user_id.name,
+          user_id: user.user_id ? user.user_id.id : null,
+          name: user.user_id ? user.user_id.name : null,
+
         },
       }));
       return mappedUsers;
     } catch (error) {
-      throw new NotFoundException(error.message);
+      throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
     }
   }
 
@@ -77,7 +64,7 @@ export class UserprojectService {
         }));
       return mappedProjects;
     } catch (error) {
-      throw new NotFoundException('error.message');
+      throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
     }
   }
 
@@ -94,7 +81,7 @@ export class UserprojectService {
       if (deleteUser.affected === 0)
         throw new NotFoundException('User does not exists in this project');
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status||httpStatusCodes['Bad Request'])
     }
   }
 }
