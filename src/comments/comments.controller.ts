@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, NotFoundException, UseGuards, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, NotFoundException, UseGuards, BadRequestException, HttpException, ForbiddenException } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
@@ -25,7 +25,7 @@ export class CommentsController {
       sendResponse(res,httpStatusCodes.OK,'Ok','Get all comments',result);
     }
     catch(err){
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -36,7 +36,7 @@ export class CommentsController {
       sendResponse(res,httpStatusCodes.OK,'ok','Get your comments',result)
     }
     catch(err){
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -45,7 +45,7 @@ export class CommentsController {
     try{
       const task=await this.taskService.findOne(+task_id);
       if(!task){
-        throw new Error("Task not found.");
+        throw new NotFoundException("Task not found.");
       }
 
       let result;
@@ -55,7 +55,7 @@ export class CommentsController {
       else if(req.user.role==='pm'){
         const taskBelongsToPM=await this.commentsService.taskBelongsToPM(+task_id,req.user.id);
         if(!taskBelongsToPM){
-          throw new Error("Task does not belongs to your projects.");
+          throw new ForbiddenException("Task does not belongs to your projects.");
         }
         
         result = await this.commentsService.findByTask(+task_id);
@@ -63,7 +63,7 @@ export class CommentsController {
       else{
         const taskAssigned=await this.taskService.findTaskUser(+task_id,req.user.id);
         if(!taskAssigned){
-          throw new Error("Task is not assigned to you.");
+          throw new ForbiddenException("Task is not assigned to you.");
         }
 
         result = await this.commentsService.findByTaskForEmp(+task_id,req.user.id);
@@ -72,7 +72,7 @@ export class CommentsController {
       sendResponse(res,httpStatusCodes.OK,'ok','Get comments for a task',result);
     }
     catch(err){
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
 
   }
@@ -82,19 +82,19 @@ export class CommentsController {
     const {task_id}=createCommentDto;
     try{ 
       if(req.user.role==='admin'){
-        throw new Error("Admin cannot comment on tasks.");
+        throw new ForbiddenException("Admin cannot comment on tasks.");
       }
 
       if(req.user.role==='pm'){
         const taskBelongsToPM=await this.commentsService.taskBelongsToPM(+task_id,req.user.id);
         if(!taskBelongsToPM){
-          throw new Error("Task does not belongs to your projects.");
+          throw new ForbiddenException("Task does not belongs to your projects.");
         }
       }
       else if(req.user.role==='employee'){
         const taskAssigned=await this.taskService.findTaskUser(+task_id,req.user.id);
         if(!taskAssigned){
-          throw new Error("Task is not assigned to you.");
+          throw new ForbiddenException("Task is not assigned to you.");
         }
       }
       const pmId=req['user'].id;
@@ -106,7 +106,7 @@ export class CommentsController {
       sendResponse(res,httpStatusCodes.Created,'Created','Create comment',comment);
     }
     catch(err){
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -115,13 +115,13 @@ export class CommentsController {
     try{
       let affected=await this.commentsService.updateWithEmpId(+id,req.user.id,updateCommentDto);
       if(!affected){
-        throw new Error("Comment not found or Comment is of other user.");
+        throw new NotFoundException("Comment not found or Comment is of other user.");
       }
   
       sendResponse(res,httpStatusCodes.OK,'ok','Comment update',null)
     }
     catch(err){
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
