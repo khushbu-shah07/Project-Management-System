@@ -205,7 +205,7 @@ export class TaskService {
       })
       return projectTasks;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -214,8 +214,7 @@ export class TaskService {
       const tasks = await this.taskRepository.find({ where: { priority: priority as any } })
       return tasks
     } catch (error) {
-      throw new BadRequestException(error.message)
-
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -226,7 +225,7 @@ export class TaskService {
       return userEmailsInTask;
     }
     catch (error) {
-      throw new BadRequestException(error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -242,7 +241,28 @@ export class TaskService {
       })
       return tasks;
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    }
+  }
+
+  async getAllTasksAssignedToUserFromProject(project_id: number, user_id: number):Promise<TaskUser[]> {
+    try {
+      const tasks = await this.taskUserRepository.find({
+        where: {
+          user_id: {
+            id: user_id
+          },
+          task_id: {
+            project_id: {
+              id: project_id
+            }
+          }
+        },
+        select: ['task_id']
+      })
+      return tasks;
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 }

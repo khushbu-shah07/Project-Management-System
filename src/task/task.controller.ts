@@ -309,5 +309,37 @@ export class TaskController {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
+
+  @UseGuards(AuthGuard, AdminProjectGuard)
+  @Get('/assigned/projects/:projectId/users/:userId')
+  async getAllTasksOfUserFromProject(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Param('projectId') projectId: string,
+    @Param('userId') userId: string
+  ) {
+    try {
+      const project = await this.projectService.findOne(+projectId);
+
+      if(!project) throw new BadRequestException('Project with given id does not exsits');
+
+      if (req['user']?.role ===  'pm') {
+        if(req['user']?.id !== project.pm_id.id) {
+          throw new ForbiddenException('Access Denied');
+        }
+      }
+
+      const tasks = await this.taskService.getAllTasksAssignedToUserFromProject(+projectId, +userId);
+      return sendResponse(
+        res,
+        httpStatusCodes.OK,
+        'success',
+        'Get all tasks assigned to user from project',
+        tasks
+      )
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    }
+  }
 }
 
