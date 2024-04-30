@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
   InternalServerErrorException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CreateTimeTrackingDto } from './dto/create-time-tracking.dto';
 import { UpdateTimeTrackingDto } from './dto/update-time-tracking.dto';
@@ -109,7 +110,7 @@ export class TimeTrackingService {
       });
 
       if (!taskuser) {
-        throw new NotFoundException(
+        throw new ForbiddenException(
           'Your are not allowed to update others timelogs',
         );
       } else {
@@ -118,11 +119,11 @@ export class TimeTrackingService {
           updateTimeTrackingDto,
         );
         if (update.affected === 0)
-          throw new BadRequestException('No record found for updating');
+          throw new NotFoundException('No record found for updating');
         return update;
       }
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (err) {
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -151,8 +152,8 @@ export class TimeTrackingService {
       }, 0);
 
       return { individualRecords, totalHours };
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (err) {
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
