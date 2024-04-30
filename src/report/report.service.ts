@@ -46,7 +46,6 @@ export class ReportService {
       const completed_task_length = completedTasks.length
 
       const taskTimeLine=await this.timeTrackingService.getByProject(id);
-      console.log(taskTimeLine);
 
       return {
         project: {
