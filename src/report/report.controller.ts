@@ -1,39 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, Req, Res, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Param, HttpException, Req, Res, ForbiddenException, UseGuards, BadRequestException } from '@nestjs/common';
 import { ReportService } from './report.service';
-import { CreateReportDto } from './dto/create-report.dto';
-import { UpdateReportDto } from './dto/update-report.dto';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { Request, Response } from 'express';
+import { AuthGuard } from 'src/auth/Guards/auth.guard';
+import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
+import { ProjectService } from 'src/project/project.service';
 
-@Controller('reports')
+@Controller('projects/report')
 export class ReportController {
-  constructor(private readonly reportService: ReportService) { }
+  constructor(
+    private readonly reportService: ReportService,
+    private readonly projectService: ProjectService
+  ) { }
 
-  // @Post()
-  // create(@Body() createReportDto: CreateReportDto) {
-  //   return this.reportService.create(createReportDto);
-  // }
-
-  // @Get()
-  // findAll() {
-  //   return this.reportService.findAll();
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.reportService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateReportDto: UpdateReportDto) {
-  //   return this.reportService.update(+id, updateReportDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.reportService.remove(+id);
-  // }
-
+  @UseGuards(AuthGuard, AdminProjectGuard)
   @Get(':id')
   async generateProjectReport(
     @Param('id') id: string,
@@ -41,7 +21,16 @@ export class ReportController {
     @Res() res: Response
   ) {
     try {
-      // throw new ForbiddenException("Acess denied")
+      const project = await this.projectService.findOne(+id);
+
+      if(!project) throw new BadRequestException('Project with given id does not exists');
+
+      if (req['user']?.role === 'pm') {
+        if (req['user']?.id !== project.pm_id.id) {
+          throw new ForbiddenException('Access Denied')
+        }
+      }
+
       const projectReport = await this.reportService.generateReport(+id);
 
       return sendResponse(
