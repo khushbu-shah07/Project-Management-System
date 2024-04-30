@@ -6,7 +6,7 @@ import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { ProjectService } from 'src/project/project.service';
 
-@Controller('projects/report')
+@Controller('projects')
 export class ReportController {
   constructor(
     private readonly reportService: ReportService,
@@ -14,7 +14,7 @@ export class ReportController {
   ) { }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
-  @Get(':id')
+  @Get(':id/report')
   async generateProjectReport(
     @Param('id') id: string,
     @Req() req: Request,
