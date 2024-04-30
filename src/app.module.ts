@@ -13,10 +13,18 @@ import { TaskModule } from './task/task.module';
 import { CommentsModule } from './comments/comments.module';
 import { TimeTrackingModule } from './time-tracking/time-tracking.module';
 import { ReportModule } from './report/report.module';
+import { MorganModule, MorganInterceptor } from 'nest-morgan';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
-  imports: [ TypeOrmModule.forRoot(dataSourceOptions),UsersModule, ProjectModule,AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule, CommentsModule, TimeTrackingModule, ReportModule],
+  imports: [TypeOrmModule.forRoot(dataSourceOptions), UsersModule, ProjectModule, AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule, CommentsModule, TimeTrackingModule, ReportModule, MorganModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: MorganInterceptor("combined"),
+    },
+
+  ],
 })
-export class AppModule {}
+export class AppModule { }
