@@ -1,10 +1,11 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Comment } from './entities/comment.entity';
 import { Repository } from 'typeorm';
 import { TaskService } from 'src/task/task.service';
+import { httpStatusCodes } from 'utils/sendresponse';
 
 @Injectable()
 export class CommentsService {
@@ -29,7 +30,7 @@ export class CommentsService {
         },
       });
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -37,7 +38,7 @@ export class CommentsService {
     try {
       return this.commentRepository.find({ where: options });
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -60,7 +61,7 @@ export class CommentsService {
         
       });
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -82,7 +83,7 @@ export class CommentsService {
         },
       });
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -109,7 +110,7 @@ export class CommentsService {
 
       return result;
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -153,7 +154,7 @@ export class CommentsService {
 
       return result;
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -178,7 +179,7 @@ export class CommentsService {
         ],
       });
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -192,7 +193,7 @@ export class CommentsService {
 
       return comment;
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -204,7 +205,7 @@ export class CommentsService {
       );
       return affected;
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -216,7 +217,7 @@ export class CommentsService {
       );
       return result.affected;
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 
@@ -225,7 +226,7 @@ export class CommentsService {
       const { affected } = await this.commentRepository.delete({ id });
       return affected;
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
     }
   }
 }
