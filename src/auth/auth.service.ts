@@ -27,7 +27,7 @@ export class AuthService {
     if (!await this.comaprePassword(data.password,user.password)) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = {role: user.role,id:user.id };
+    const payload = {role: user.role,id:user.id ,email:user.email};
     return {
       accessToken: await this.jwtService.signAsync(payload),
     };

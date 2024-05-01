@@ -12,6 +12,8 @@ import {
   UseGuards,
   NotFoundException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   HttpException,
   ConflictException,
 } from '@nestjs/common';
@@ -22,17 +24,17 @@ import { Request, Response } from 'express';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
-import { User } from 'src/users/entities/user.entity';
 import { ProjectService } from 'src/project/project.service';
+import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
 import { UsersService } from 'src/users/users.service';
 
 @Controller('userproject')
 export class UserprojectController {
   constructor(
     private readonly userprojectService: UserprojectService,
-    private readonly projectService: ProjectService,
-    private readonly usersService: UsersService,
-  ) {}
+    @Inject(forwardRef(() => ProjectService)) private readonly projectService: ProjectService,
+    private readonly usersService: UsersService
+  ) { }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
@@ -42,6 +44,23 @@ export class UserprojectController {
     @Res() res: Response,
   ) {
     try {
+      const userDetail = await this.usersService.findOne(createUserprojectDto.user_id);
+      const userEmail = userDetail.email;
+
+      const pmOrAdminId = req['user'].id;
+      // console.log('b', pmOrAdminId)
+
+      const pmOrAdminDetail=await this.usersService.findOne(pmOrAdminId);
+      const pmOrAdminEmail=pmOrAdminDetail.email;
+
+
+
+      const projectDetail = await this.projectService.findOne(createUserprojectDto.project_id);
+      const projectName = projectDetail.name
+
+
+      sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been added in project`, `None`, `${projectName}`)
+
       const { project_id, user_id } = createUserprojectDto;
 
       const [project, user] = await Promise.all([
@@ -52,18 +71,18 @@ export class UserprojectController {
       if (user.role !== 'employee') {
         throw new ForbiddenException('Only employess can be added');
       }
-      if (req['user'].id !== project.pm_id.id) {
+      if (req['user'].role === 'pm' && req['user'].id !== project.pm_id.id) {
         throw new ForbiddenException('Access Denied');
       }
 
-      const userproject =
-        await this.userprojectService.create(createUserprojectDto);
+      const userprojectCreate = await this.userprojectService.create(createUserprojectDto);
+
       return sendResponse(
         res,
         httpStatusCodes.Created,
         'success',
         'UserProject created successfully',
-        userproject,
+        userprojectCreate,
       );
     } catch (error) {
       if (error instanceof ConflictException) {
@@ -74,6 +93,7 @@ export class UserprojectController {
     }
   }
 
+  @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete('/users')
   async removeUserFromProject(
     @Body() userProjectData: CreateUserprojectDto,
@@ -81,15 +101,37 @@ export class UserprojectController {
     @Res() res: Response,
   ) {
     try {
+     
+      const userDetail = await this.usersService.findOne(userProjectData.user_id);
+      const userEmail = userDetail.email;
+
+      const pmOrAdminId = req['user'].id;
+      // console.log('b', pmOrAdminId)
+
+      const pmOrAdminDetail=await this.usersService.findOne(pmOrAdminId);
+      const pmOrAdminEmail=pmOrAdminDetail.email;
+
+
+      const projectDetail = await this.projectService.findOne(userProjectData.project_id);
+      const projectName = projectDetail.name
+
+
+      sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been removed from project`, `None`, `${projectName}`)
+
       const project = await this.projectService.findOne(
         userProjectData.project_id,
       );
+
+      if (!project) {
+        throw new BadRequestException("Project doesn't exist");
+      }
 
       if (req['user'].id !== project.pm_id.id) {
         throw new ForbiddenException('Access Denied');
       }
 
       await this.userprojectService.removeUserFromProject(userProjectData);
+
       sendResponse(
         res,
         httpStatusCodes.OK,
@@ -128,16 +170,15 @@ export class UserprojectController {
             "You can not access other project's members list",
           );
         }
-      }
-
-      if (user?.role === 'employee') {
-        const data = users.filter((u) => {
-          return u.user_detail.user_id === user.id;
-        });
-        console.log(data);
-
-        if (data.length === 0)
-          throw new ForbiddenException('You are not the part of this project');
+        if (user?.role === 'employee') {
+          const data = users.filter((u) => {
+            return u.user_detail.user_id === user.id;
+          });
+          if (data.length === 0)
+            throw new ForbiddenException(
+              'You are not the part of this project',
+            );
+        }
       }
 
       return sendResponse(
