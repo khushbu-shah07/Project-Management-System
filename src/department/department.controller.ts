@@ -20,8 +20,8 @@ import { CreateDepartmentUserDto } from './dto/create-department-user.dto';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { UsersService } from 'src/users/users.service';
-import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
-import { UserInDepartment } from 'src/notification/serviceBasedEmail/userInDepartment';
+import sendNotifyEmail from 'utils/Email/sendNotifyMail';
+// import { UserInDepartment } from 'src/notification/serviceBasedEmail/userInDepartment';
 
 @Controller('departments')
 export class DepartmentController {
@@ -118,7 +118,7 @@ export class DepartmentController {
       await this.departmentService.removeFromDepartment(departmentUserData);
       const adminId=req['user'].id;
 
-      UserInDepartment.addOrRemoveUser( this.usersService , adminId,'Removed',departmentUserData)
+      // UserInDepartment.addOrRemoveUser( this.usersService , adminId,'Removed',departmentUserData)
 
       return sendResponse(
         res,
@@ -145,7 +145,7 @@ export class DepartmentController {
 
         const adminId=req['user'].id;
 
-        UserInDepartment.addOrRemoveUser( this.usersService , adminId,'Added',departmentUserData)
+        // UserInDepartment.addOrRemoveUser( this.usersService , adminId,'Added',departmentUserData)
 
       return sendResponse(
         res,

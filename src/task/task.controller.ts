@@ -15,8 +15,8 @@ import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
 import { UserprojectService } from '../userproject/userproject.service'
 import { UsersService } from '../users/users.service'
-import { UserHasTask } from 'src/notification/serviceBasedEmail/userHasTask';
-import { TaskStatus } from 'src/notification/serviceBasedEmail/TaskStatusUpdate';
+// import { UserHasTask } from 'src/notification/serviceBasedEmail/userHasTask';
+// import { TaskStatus } from 'src/notification/serviceBasedEmail/TaskStatusUpdate';
 
 @Controller('tasks')
 export class TaskController {
@@ -181,7 +181,7 @@ export class TaskController {
       const pmOrAdminId = req['user'].id;
       const taskTitle = task.title;
       const projectId = task.project_id.id;
-      UserHasTask.assignedOrRemoveToTask(this.usersService, this.projectService, pmOrAdminId, 'Add', taskUserData, taskTitle, projectId)
+      // UserHasTask.assignedOrRemoveToTask(this.usersService, this.projectService, pmOrAdminId, 'Add', taskUserData, taskTitle, projectId)
       return sendResponse(
         res,
         httpStatusCodes.Created,
@@ -216,7 +216,7 @@ export class TaskController {
       const pmOrAdminId = req['user'].id;
       const taskTitle = task.title;
       const projectId = task.project_id.id;
-      UserHasTask.assignedOrRemoveToTask(this.usersService, this.projectService, pmOrAdminId, 'Remove', taskUserData, taskTitle, projectId)
+      // UserHasTask.assignedOrRemoveToTask(this.usersService, this.projectService, pmOrAdminId, 'Remove', taskUserData, taskTitle, projectId)
 
       return sendResponse(
         res,
@@ -266,7 +266,7 @@ export class TaskController {
     const pmDetail = await this.usersService.findOne(task.project_id.pm_id.id)
     const pmEmail = pmDetail.email;
     const statusChange = await this.taskService.completeTask(+id);
-    TaskStatus.TaskStatusUpdate(pmEmail, id, 'completed', this.taskService, taskTitle, this.projectService)
+    // TaskStatus.TaskStatusUpdate(pmEmail, id, 'completed', this.taskService, taskTitle, this.projectService)
     return sendResponse(res, httpStatusCodes.OK, "sucess", "Complete Task", statusChange)
   }
 

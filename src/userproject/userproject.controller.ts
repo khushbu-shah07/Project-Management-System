@@ -25,7 +25,7 @@ import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { ProjectService } from 'src/project/project.service';
-import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
+// import sendNotifyEmail from 'utils/Email/sendNotifyMail';
 import { UsersService } from 'src/users/users.service';
 
 @Controller('userproject')
@@ -59,7 +59,7 @@ export class UserprojectController {
       const projectName = projectDetail.name
 
 
-      sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been added in project`, `None`, `${projectName}`)
+      // sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been added in project`, `None`, `${projectName}`)
 
       const { project_id, user_id } = createUserprojectDto;
 
@@ -116,7 +116,7 @@ export class UserprojectController {
       const projectName = projectDetail.name
 
 
-      sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been removed from project`, `None`, `${projectName}`)
+      // sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been removed from project`, `None`, `${projectName}`)
 
       const project = await this.projectService.findOne(
         userProjectData.project_id,

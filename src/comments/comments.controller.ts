@@ -7,7 +7,7 @@ import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { TaskService } from 'src/task/task.service';
-import { UserComment } from 'src/notification/serviceBasedEmail/userHasComment';
+// import { UserComment } from 'src/notification/serviceBasedEmail/userHasComment';
 import { UsersService } from 'src/users/users.service';
 import { ProjectService } from 'src/project/project.service';
 
@@ -102,7 +102,7 @@ export class CommentsController {
       const pmEmail=pmDetail.email;
 
       const comment=await this.commentsService.create(req.user.id,createCommentDto);
-      UserComment.UserHasComment(pmEmail,task_id,comment.content,'created',this.taskService,this.projectService);
+      // UserComment.UserHasComment(pmEmail,task_id,comment.content,'created',this.taskService,this.projectService);
       sendResponse(res,httpStatusCodes.Created,'Created','Create comment',comment);
     }
     catch(err){

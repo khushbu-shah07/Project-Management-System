@@ -15,9 +15,10 @@ import { TimeTrackingModule } from './time-tracking/time-tracking.module';
 import { ReportModule } from './report/report.module';
 import { MorganModule, MorganInterceptor } from 'nest-morgan';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(dataSourceOptions), UsersModule, ProjectModule, AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule, CommentsModule, TimeTrackingModule, ReportModule, MorganModule],
+  imports: [TypeOrmModule.forRoot(dataSourceOptions), UsersModule, ProjectModule, AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule, CommentsModule, TimeTrackingModule, ReportModule, MorganModule, NotificationModule],
   controllers: [AppController],
   providers: [AppService,
     {
