@@ -92,6 +92,12 @@ describe('TaskController', () => {
     task_id:3
   }
 
+  let mockUser = {
+    name:"test",
+    role:"employee",
+    email:"test@gmail.com"
+  }
+
   let mockTaskService = {
     findAll: jest.fn().mockResolvedValue([mockTask]),
     create: jest.fn().mockResolvedValue(mockTask),
@@ -100,7 +106,8 @@ describe('TaskController', () => {
     update: jest.fn().mockResolvedValue({affected:1}),
     getAllTaskByPriority: jest.fn().mockResolvedValue([mockTask]),
     getAllProjectTasks:jest.fn().mockResolvedValue([mockTask]),
-    findTaskUser:jest.fn().mockResolvedValue(1)
+    findTaskUser:jest.fn().mockResolvedValue(1),
+    getUsersInTask:jest.fn().mockResolvedValue([mockUser.email])
 
   }
 
@@ -611,4 +618,66 @@ describe('TaskController', () => {
     })
   })
 
+  //Test case for get user in task
+  describe("Get User In Task",()=>{
+    it("should allow admin to fetch all user in a task",async()=>{
+      try {
+        const req = getMockAuthentiatedRequest({}, 1, 'admin');
+        const res = getMockResponse();
+        await taskController.getUsersInTask(`${mockTask.id}`,req,res)
+        expect(mockTaskService.findOne).toHaveBeenCalledWith(mockTask.id)
+        expect(mockTaskService.getUsersInTask).toHaveBeenCalledWith(mockTask.id)
+        expect(res.json).toHaveBeenCalledWith({
+          operation:'Get All Users of a Task',
+          status:"success",
+          data:{deletedTask:{affected:1}}
+        })
+        expect(res.status).toHaveBeenCalledWith(200)
+      } catch (error) {
+        expect(error)
+      }
+    })
+    it("should allow pm of project to fetch all user in a task",async()=>{
+      try {
+        const req = getMockAuthentiatedRequest({}, 1, 'pm');
+        const res = getMockResponse();
+        await taskController.getUsersInTask(`${mockTask.id}`,req,res)
+        expect(mockTaskService.findOne).toHaveBeenCalledWith(mockTask.id)
+        expect(mockTaskService.getUsersInTask).toHaveBeenCalledWith(mockTask.id)
+        expect(res.json).toHaveBeenCalledWith({
+          operation:'Get All Users of a Task',
+          status:"success",
+          data:{deletedTask:{affected:1}}
+        })
+        expect(res.status).toHaveBeenCalledWith(200)
+      } catch (error) {
+        expect(error)
+      }
+    })
+    it("should throw forbidden Exception for a non admin or non pm user",async()=>{
+      const req = getMockAuthentiatedRequest({}, 1, "user")
+      const res = getMockResponse()
+      const errorMessage = "Access Denied to fetch users of a Task"
+      try {
+        await taskController.getUsersInTask(`${mockTask.id}`,req,res)
+      } catch (error) {
+        expect(error).toBeInstanceOf(ForbiddenException);
+        expect(error.message).toBe(errorMessage);
+        expect(error.getStatus()).toBe(403)
+      }
+    })
+    it('should throw http exception for any other errors', async () => {
+      const req = getMockAuthentiatedRequest({}, 1, "user")
+      const res = getMockResponse()
+      const errorMessage = 'Some error occurred';
+      mockTaskService.getUsersInTask.mockRejectedValueOnce({ message: errorMessage, status: 400 });
+      try {
+        await taskController.getUsersInTask(`${mockTask.id}`,req,res)
+      } catch (error) {
+        expect(error).toBeInstanceOf(HttpException);
+        expect(error.message).toBe(errorMessage);
+        expect(error.getStatus()).toBe(400)
+      }
+    })
+  })
 });

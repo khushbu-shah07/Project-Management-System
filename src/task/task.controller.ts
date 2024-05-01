@@ -270,15 +270,23 @@ export class TaskController {
 
 
   @UseGuards(AuthGuard, AdminProjectGuard)
-  @Get("/users/:id")
+  @Get("/:id/users")
   async getUsersInTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
-    const task = await this.taskService.findOne(+id);
+    try {
+      const task = await this.taskService.findOne(+id);
     if (!task) {
       throw new Error('Task with given id does not exists');
     }
+    if (req['user'].role === "pm") {
+      if (req['user'].id !== task.project_id.pm_id.id) {
+        throw new ForbiddenException("Access Denied to fetch all user of a task")
+      }
+    }
     const userEmailsInTask = await this.taskService.getUsersInTask(Number(id));
-
     return sendResponse(res, httpStatusCodes.OK, 'success', 'Get All Users of a task', userEmailsInTask)
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+    } 
   }
 
   @UseGuards(AuthGuard)
