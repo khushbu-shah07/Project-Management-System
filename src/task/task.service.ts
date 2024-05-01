@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task, TaskPriority, TaskStatus } from './entities/task.entity';
@@ -132,7 +132,7 @@ export class TaskService {
   async assignTask(taskUserData: CreateTaskUserDto, task: Task) {
     try {
       const isExists = await this.findTaskUser(taskUserData.task_id, taskUserData.user_id);
-      if (isExists > 0) throw new BadRequestException('The task is already assigned to this user')
+      if (isExists > 0) throw new ConflictException('The task is already assigned to this user')
 
       const taskUser = await this.taskUserRepository.create(taskUserData as unknown as TaskUser);
       await this.taskUserRepository.save(taskUser);
@@ -162,7 +162,7 @@ export class TaskService {
         .where('task_id = :taskId', { taskId: taskUserData.task_id })
         .andWhere('user_id = :userId', { userId: taskUserData.user_id })
         .execute()
-      if (result.affected === 0) throw new BadRequestException('The task is not assigned to this user')
+      if (result.affected === 0) throw new ConflictException('The task is not assigned to this user')
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
