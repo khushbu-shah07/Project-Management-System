@@ -160,8 +160,6 @@ export class TaskController {
   ) {
     try {
       const task = await this.taskService.findOne(taskUserData.task_id);
-      if (!task) throw new Error('Task with given id does not exists');
-
       if (req['user'].role === "pm") {
         if (req['user'].id !== task.project_id.pm_id.id) {
           throw new ForbiddenException("Access Denied to assign task to user")
@@ -237,7 +235,7 @@ export class TaskController {
       const task = await this.taskService.findOne(+id)
       if (req['user'].role === "pm") {
         if (req['user'].id !== task.project_id.pm_id.id) {
-          throw new ForbiddenException("Access Denied to Delete Project")
+          throw new ForbiddenException("Access Denied to Delete Task")
         }
       }
       const data = await this.taskService.remove(+id)
@@ -272,7 +270,7 @@ export class TaskController {
 
 
   @UseGuards(AuthGuard, AdminProjectGuard)
-  @Patch("/users/:id")
+  @Get("/users/:id")
   async getUsersInTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     const task = await this.taskService.findOne(+id);
     if (!task) {
@@ -280,7 +278,7 @@ export class TaskController {
     }
     const userEmailsInTask = await this.taskService.getUsersInTask(Number(id));
 
-    return sendResponse(res, httpStatusCodes.OK, 'success', 'all users got', userEmailsInTask)
+    return sendResponse(res, httpStatusCodes.OK, 'success', 'Get All Users of a task', userEmailsInTask)
   }
 
   @UseGuards(AuthGuard)

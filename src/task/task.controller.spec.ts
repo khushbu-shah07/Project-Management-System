@@ -298,7 +298,6 @@ describe('TaskController', () => {
         expect(error)
       }
     })
-
     it("should allow the pm of a project to findAll Tasks of a project",async()=>{
       try {
         const req = getMockAuthentiatedRequest({}, 1, 'pm');
@@ -317,7 +316,6 @@ describe('TaskController', () => {
         expect(error)
       }
     })
-
     it("should allow the user of the project to findAll Tasks",async()=>{
       try {
         const req = getMockAuthentiatedRequest({}, 1, 'employee');
@@ -369,7 +367,6 @@ describe('TaskController', () => {
         expect(error.getStatus()).toBe(403)
       }
     })
-
     it('should throw http exception for any other errors', async () => {
       const req = getMockAuthentiatedRequest({}, 1, "user")
       const res = getMockResponse()
@@ -466,6 +463,7 @@ describe('TaskController', () => {
     })
   })
 
+  //test case for update Task
   describe("Update Task",()=>{
     it("should allow admin to upate task",async()=>{
       const updatedTaskData:UpdateTaskDto = {
@@ -484,7 +482,7 @@ describe('TaskController', () => {
       })
       expect(res.status).toHaveBeenCalledWith(200)
     })
-    it("should allow pm of the project to upate task",async()=>{
+    it("should allow pm of the project to update task",async()=>{
       const updatedTaskData:UpdateTaskDto = {
         title:"Updated Task",
         description:"This is updated Task"
@@ -549,4 +547,68 @@ describe('TaskController', () => {
     })
 
   })
+
+  //Test case for Delete Task
+  describe("Delete Task",()=>{
+    it("Should allow admin to delete task of any project",async()=>{
+      try {
+        const req = getMockAuthentiatedRequest({}, 1, 'admin');
+        const res = getMockResponse();
+        await taskController.remove(`${mockTask.id}`,req,res)
+        expect(mockTaskService.findOne).toHaveBeenCalledWith(mockTask.id)
+        expect(mockTaskService.remove).toHaveBeenCalledWith(mockTask.id)
+        expect(res.json).toHaveBeenCalledWith({
+          operation:'Delete Task',
+          status:"success",
+          data:{deletedTask:{affected:1}}
+        })
+        expect(res.status).toHaveBeenCalledWith(200)
+      } catch (error) {
+        expect(error)
+      }
+    })
+    it("Should allow pm of project to delete task of any project",async()=>{
+      try {
+        const req = getMockAuthentiatedRequest({}, 1, 'pm');
+        const res = getMockResponse();
+        await taskController.remove(`${mockTask.id}`,req,res)
+        expect(mockTaskService.findOne).toHaveBeenCalledWith(mockTask.id)
+        expect(mockTaskService.remove).toHaveBeenCalledWith(mockTask.id)
+        expect(res.json).toHaveBeenCalledWith({
+          operation:'Delete Task',
+          status:"success",
+          data:{deletedTask:{affected:1}}
+        })
+        expect(res.status).toHaveBeenCalledWith(200)
+      } catch (error) {
+        expect(error)
+      }
+    })
+    it("should throw forbidden Exception for a non admin or non pm user",async()=>{
+      const req = getMockAuthentiatedRequest({}, 1, "user")
+      const res = getMockResponse()
+      const errorMessage = "Access Denied to Delete Task"
+      try {
+        await taskController.remove(`${mockProject.id}`,req, res);
+      } catch (error) {
+        expect(error).toBeInstanceOf(ForbiddenException);
+        expect(error.message).toBe(errorMessage);
+        expect(error.getStatus()).toBe(403)
+      }
+    })
+    it('should throw http exception for any other errors', async () => {
+      const req = getMockAuthentiatedRequest({}, 1, "user")
+      const res = getMockResponse()
+      const errorMessage = 'Some error occurred';
+      mockTaskService.remove.mockRejectedValueOnce({ message: errorMessage, status: 400 });
+      try {
+        await taskController.remove(`${mockTask.id}`,req,res)
+      } catch (error) {
+        expect(error).toBeInstanceOf(HttpException);
+        expect(error.message).toBe(errorMessage);
+        expect(error.getStatus()).toBe(400)
+      }
+    })
+  })
+
 });
