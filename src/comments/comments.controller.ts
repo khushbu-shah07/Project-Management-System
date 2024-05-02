@@ -36,7 +36,25 @@ export class CommentsController {
     }
   }
 
-  @Get(':task_id')
+  @Get('/:id')
+  async findOne(@Param('id') id:string,@Req() req,@Res() res){
+    try{
+      const comment=await this.commentsService.findOne({id:id});
+      if(!comment){
+        throw new NotFoundException('Comment not found.');
+      }
+      else if(comment.emp_id!==req.user.id){
+        throw new ForbiddenException('Comment is of other user.');
+      }
+      
+      sendResponse(res,httpStatusCodes.OK,'ok','Get a comment',comment)
+    }
+    catch(err){
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
+    }
+  }
+
+  @Get('/task/:task_id')
   async findAllCommentsByTask(@Param('task_id') task_id: string,@Req() req, @Res() res) {
     try{
       const task=await this.taskService.findOne(+task_id);

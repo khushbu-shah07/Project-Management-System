@@ -42,6 +42,22 @@ export class CommentsService {
     }
   }
 
+  async findOne(options):Promise<Comment> {
+    try {
+      return this.commentRepository.createQueryBuilder('c')
+        .select('c.emp_id','emp_id')
+        .addSelect('c.id','id')
+        .addSelect('c.task_id','task_id')
+        .addSelect('c.content','content')
+        .addSelect('c.edited','edited')
+        .addSelect('c.created_at','created_at')
+        .addSelect('c.updated_at','updated_at')
+        .where('id =:id',{id:options.id}).getRawOne();
+    } catch (err) {
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
+    }
+  }
+
   async findByEmp(emp_id: number):Promise<Comment[]> {
     try {
       return this.commentRepository.find({
