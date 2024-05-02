@@ -6,7 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { TeamUser } from './team-user.entity';
-import { Project } from 'src/project/entities/project.entity';
+import { Project } from '../../project/entities/project.entity';
 
 @Entity()
 export class Team {

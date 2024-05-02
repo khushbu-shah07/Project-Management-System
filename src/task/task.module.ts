@@ -7,9 +7,10 @@ import { TaskUser } from './entities/task-user.entity';
 import { ProjectModule } from 'src/project/project.module';
 import { UserprojectModule } from 'src/userproject/userproject.module';
 import { Project } from 'src/project/entities/project.entity';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Task, TaskUser, Project]),ProjectModule, UserprojectModule],
+  imports: [TypeOrmModule.forFeature([Task, TaskUser, Project]),ProjectModule, UserprojectModule,UsersModule],
   controllers: [TaskController],
   providers: [TaskService],
   exports:[TaskService],

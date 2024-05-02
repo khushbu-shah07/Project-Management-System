@@ -1,7 +1,7 @@
 import { Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Task } from "./task.entity";
-import { User } from "src/users/entities/user.entity";
-import { TaskHour } from "src/time-tracking/entities/time-tracking.entity";
+import { User } from "../../users/entities/user.entity";
+import { TaskHour } from "../../time-tracking/entities/time-tracking.entity";
 
 @Entity()
 export class TaskUser{
