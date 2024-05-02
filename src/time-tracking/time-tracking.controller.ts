@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Res, BadRequestException, HttpException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Res, BadRequestException, HttpException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { TimeTrackingService } from './time-tracking.service';
 import { CreateTimeTrackingDto } from './dto/create-time-tracking.dto';
 import { UpdateTimeTrackingDto } from './dto/update-time-tracking.dto';
@@ -29,7 +29,7 @@ export class TimeTrackingController {
       
       const taskUser=await this.taskService.findTaskUserRow(task_id,req.user.id);
       if(!taskUser){
-        throw new Error("Task is not assigned to you.");
+        throw new ForbiddenException("Task is not assigned to you.");
       }
       
       const task=await this.taskService.findOne(task_id);
@@ -51,14 +51,14 @@ export class TimeTrackingController {
   async getMyLogs(@Req() req,@Res() res){
     try{
       if(req.user.role!=='employee'){
-        throw new Error("Only employees has access.")
+        throw new ForbiddenException("Only employees has access.")
       }
 
       const result=await this.timeTrackingService.getLogsByEmp(+req.user.id);
       sendResponse(res,httpStatusCodes.OK,'ok','Get your logs',result)
     }
     catch(err){
-      throw new BadRequestException(err.message)
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -70,14 +70,14 @@ export class TimeTrackingController {
         const hasTask=await this.taskService.findTaskUser(task_id,req.user.id);
         console.log(hasTask)
         if(!hasTask){
-          throw new Error("Task is not assigned to you.");
+          throw new ForbiddenException("Task is not assigned to you.");
         }
       }
 
       if(req.user.role==='pm'){
         const hasTask= await this.taskService.taskBelongsToPM(task_id,req.user.id);
         if(!hasTask){
-          throw new Error("Task is not of your project.");
+          throw new ForbiddenException("Task is not of your project.");
         }
       }
 
@@ -98,10 +98,10 @@ export class TimeTrackingController {
       const project=await this.projectService.findOne(project_id);
       console.log("P",project)
       if(!project){
-        throw new Error("Invalid project id.")
+        throw new NotFoundException("Invalid project id.")
       }
       if(project.pm_id.id!==req.user.id){
-        throw new Error("This project is not yours.")
+        throw new ForbiddenException("This project is not yours.")
       }
 
       const result=await this.timeTrackingService.getByProject(project_id);
@@ -125,7 +125,7 @@ export class TimeTrackingController {
     }
   }
 
-  @Patch('/taskHours/:id')
+  @Patch('/:id')
   async update(
     @Param('id') id: number,
     @Body() updateTimeTrackingDto: UpdateTimeTrackingDto,
@@ -152,13 +152,13 @@ export class TimeTrackingController {
         'Updated timetrack details',
         {updatedLog:updatedData.affected},
       );
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (err) {
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
   @UseGuards(AdminProjectGuard)
-  @Get('/taskHours/emp/:userId')
+  @Get('/emp/:userId')
   async getUserTimeLogs(
     @Param('userId') userId: number,
     @Req() req: Request,
@@ -174,8 +174,8 @@ export class TimeTrackingController {
         'Get log hours of user',
         data,
       );
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (err) {
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
