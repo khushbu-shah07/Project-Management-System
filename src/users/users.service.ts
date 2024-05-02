@@ -52,7 +52,11 @@ export class UsersService {
       }
       return user
     } catch (error) {
-      throw new HttpException(error.message, error.status || httpStatusCodes['Not Found'])
+      if(error instanceof NotFoundException){
+        throw new NotFoundException(error.message)
+      }else{
+        throw new HttpException(error.message, error.status || httpStatusCodes['Not Found'])
+      }
     };
   }
 

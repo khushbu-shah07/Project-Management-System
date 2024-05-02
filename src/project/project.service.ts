@@ -22,10 +22,8 @@ export class ProjectService {
   ) {}
   async create(projectData: CreateProjectDto): Promise<Project> {
     try {
-      const user = await this.userService.findOne(projectData.pm_id);
-      const projectData1 = { ...projectData, pm_id: user };
       const project = await this.projectRepository.create(
-        projectData1 as unknown as Project,
+        projectData as unknown as Project,
       );
       await this.projectRepository.save(project);
       return project;
