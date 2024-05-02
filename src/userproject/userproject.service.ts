@@ -9,7 +9,7 @@ import { CreateUserprojectDto } from './dto/create-userproject.dto';
 import { UpdateUserprojectDto } from './dto/update-userproject.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Userproject } from './entities/user-project.entity';
-import { Repository, FindOptionsWhere } from 'typeorm';
+import { Repository } from 'typeorm';
 import { httpStatusCodes } from 'utils/sendresponse';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class UserprojectService {
       const { project_id, user_id } = createUserprojectDto;
 
       const existingUserProject = await this.userProjectRepository.findOne({
-        where: { project_id, user_id } as FindOptionsWhere<Userproject>,
+        where: { project_id: { id: project_id }, user_id: { id: user_id } },
       });
 
       if (existingUserProject) {
@@ -76,7 +76,7 @@ export class UserprojectService {
           message: error.message,
           statusCode: httpStatusCodes['Not Found'],
         };
-        throw new NotFoundException(errorMessage)
+        throw new NotFoundException(errorMessage);
       }
       throw new HttpException(
         error.message,
@@ -92,7 +92,7 @@ export class UserprojectService {
         relations: ['project_id'],
       });
       if(projects.length === 0){
-        throw new NotFoundException('No project is assigned to you')
+        throw new NotFoundException('No project is assigned to you');
       }
       const mappedProjects = projects.map((project) => ({
         id: project.id,
@@ -108,7 +108,7 @@ export class UserprojectService {
           message: error.message,
           statusCode: httpStatusCodes['Not Found'],
         };
-        throw new NotFoundException(errorMessage)
+        throw new NotFoundException(errorMessage);
       }
       throw new HttpException(
         error.message,
