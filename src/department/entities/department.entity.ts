@@ -6,12 +6,12 @@ export class Department {
   @PrimaryGeneratedColumn()
   id: number
 
-  @Column({ nullable: false })
+  @Column({ nullable: false , unique:true })
   name: string
 
   @OneToMany(() => DepartmentUser, (departmentUser) => departmentUser.department_id)
   departments: DepartmentUser[]
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({select:false})
   deleted_at: Date
 }

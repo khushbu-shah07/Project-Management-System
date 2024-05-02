@@ -74,12 +74,12 @@ export class User {
   @OneToMany(()=>Comment,(comment)=>comment.emp_id)
   comments:Comment[];
 
-  @CreateDateColumn({ nullable: false })
+  @CreateDateColumn({ nullable: false ,select:false})
   readonly created_at: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({select:false})
   readonly updated_at: Date;
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({select:false})
   readonly deleted_at: Date;
 }

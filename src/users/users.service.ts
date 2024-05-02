@@ -1,11 +1,10 @@
-import { BadGatewayException, BadRequestException, HttpException, Injectable, NotFoundException, UseGuards } from '@nestjs/common';
+import {BadRequestException, ConflictException, HttpException, Injectable, NotFoundException} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { UserRole } from './dto/user.role.enum';
 import { httpStatusCodes } from '../../utils/sendresponse';
 
 @Injectable()
@@ -19,37 +18,26 @@ export class UsersService {
     return hash;
   }
 
-
-
-  // async createAdminUser(): Promise<void> {
-  //   const exists = await this.userRepository.existsBy({ email: "admin@gmail.com" })
-  //   if (!exists) {
-  //     const admin = this.userRepository.create({
-  //       name: 'admin',
-  //       email: 'admin@gmail.com',
-  //       role: UserRole.ADMIN,
-  //       password: await this.hashPassword("admin")
-  //     })
-  //     await this.userRepository.save(admin)
-  //   }
-  // }
-
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const { name, email, role } = createUserDto;
       const password = await this.hashPassword(createUserDto.password);
       const user = this.userRepository.create({ name, email, password, role });
       await this.userRepository.save(user);
-      delete user.password;
+      delete user.password
       return user;
     } catch (error) {
-      throw new HttpException(error.message,error.status || httpStatusCodes['Bad Request'])
+      if(error.constraint === 'IDX_e12875dfb3b1d92d7d7c5377e2'){
+        throw new ConflictException("Enter Unique Email .")
+      } else { 
+        throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+      }
     }
   }
 
   async findAll(): Promise<User[]> {
     try {
-      const users = await this.userRepository.find()
+      const users = await this.userRepository.find({select:{id:true,name:true,email:true,role:true}})
       return users;
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
@@ -58,7 +46,7 @@ export class UsersService {
 
   async findOne(id: number): Promise<User> {
     try {
-      const user = await this.userRepository.findOne({ where: { id: id } })
+      const user = await this.userRepository.findOne({ where: { id: id },select:{name:true,email:true,role:true} })
       if (!user) {
         throw new NotFoundException("No User With the given ID")
       }
@@ -72,7 +60,7 @@ export class UsersService {
     try {
       const user = await this.userRepository.findOne({ where: { email: email }, select: { password: true, role: true, id: true } })
       return user
-    } catch (error) { 
+    } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
@@ -94,11 +82,11 @@ export class UsersService {
     }
   }
 
-  async remove(id: number): Promise<Number> { 
+  async remove(id: number): Promise<Number> {
     try {
       const deleted = await this.userRepository.softDelete({ id });
       if (deleted.affected === 0) {
-        throw new BadRequestException("No User With The Given ID")
+        throw new NotFoundException("No User With The Given ID")
       }
       return deleted.affected
     } catch (error) {
