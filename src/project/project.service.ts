@@ -12,6 +12,8 @@ import { Project } from './entities/project.entity';
 import { UsersService } from '../users/users.service';
 import { ProjectStatus } from './entities/project.entity';
 import { httpStatusCodes } from '../../utils/sendresponse';
+import { NotificationService } from 'src/notification/notification.service';
+import { UserprojectService } from 'src/userproject/userproject.service';
 
 @Injectable()
 export class ProjectService {
@@ -19,6 +21,8 @@ export class ProjectService {
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
     private readonly userService: UsersService,
+    private readonly notificationService:NotificationService,
+    private readonly userProjectService:UserprojectService
   ) {}
   async create(projectData: CreateProjectDto): Promise<Project> {
     try {
@@ -116,7 +120,7 @@ export class ProjectService {
     }
   }
 
-  async completeProject(id: number) {
+  async completeProject(id: number,projectId:number,pmOrAdminEmail:string,projectName:string) {
     try {
       const statusUpdate = await this.projectRepository.update(id, {
         status: ProjectStatus.COMPLETED,
@@ -125,6 +129,26 @@ export class ProjectService {
 
       if (statusUpdate.affected === 0)
         throw new NotFoundException('Project with given id does not exists');
+
+      const allUsersInProject = await this.userProjectService.getUsersFromProject(projectId)
+
+      const allUsersId = [];
+      for (const user in allUsersInProject) {
+        const userID = allUsersInProject[user].user_detail.user_id;
+        if (userID) {
+          allUsersId.push(userID)
+        }
+      }
+  
+      let allUsersEmail = [];
+      for (const userId in allUsersId) {
+        const usersDetail = await this.userService.findOne(Number(allUsersId[userId]));
+        allUsersEmail.push(usersDetail.email)
+  
+      }
+
+      await this.notificationService.projectStatusUpdate(pmOrAdminEmail,allUsersInProject,'project complete',projectName)
+
     } catch (error) {
       throw new HttpException(
         error.message,

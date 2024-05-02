@@ -6,6 +6,7 @@ import { UsersModule } from 'src/users/users.module';
 @Module({
   imports:[UsersModule],
   controllers: [NotificationController],
+  exports:[NotificationService],
   providers: [NotificationService],
 })
 export class NotificationModule {}

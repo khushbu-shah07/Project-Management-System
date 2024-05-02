@@ -196,31 +196,12 @@ export class ProjectController {
       }
     }
     
-    await this.projectService.completeProject(+id);
-
-    const pmOrAdminEmail = project.pm_id.email;
     const projectId = project.id;
+    const pmOrAdminEmail = project.pm_id.email;
     const projectName = project.name
-
-    const allUsersInProject = await this.userProject.getUsersFromProject(projectId)
-
-    const allUsersId = [];
-    for (const user in allUsersInProject) {
-      const userID = allUsersInProject[user].user_detail.user_id;
-      if (userID) {
-        allUsersId.push(userID)
-      }
-    }
-
-    let allUsersEmail = [];
-    for (const userId in allUsersId) {
-      const usersDetail = await this.usersService.findOne(Number(allUsersId[userId]));
-      allUsersEmail.push(usersDetail.email)
-
-    }
-    console.log("all users", allUsersEmail)
-    // ProjectStatus.projectStatusUpdate(pmOrAdminEmail, allUsersInProject, 'completed', projectName, this.usersService)
-
+    await this.projectService.completeProject(+id,projectId,pmOrAdminEmail,projectName);
+    
+    const allUsersInProject=[]
     return sendResponse(
       res,
       httpStatusCodes.OK,
