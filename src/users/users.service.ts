@@ -1,4 +1,4 @@
-import { BadGatewayException, BadRequestException, HttpException, Injectable, UseGuards } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, HttpException, Injectable, NotFoundException, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -66,7 +66,11 @@ export class UsersService {
       }
       return user
     } catch (error) {
-      throw new HttpException(error.message,error.status||httpStatusCodes['Bad Request'])
+      if(error instanceof NotFoundException){
+        throw new NotFoundException(error.message)
+      }else{
+        throw new HttpException(error.message,error.status||httpStatusCodes['Bad Request'])
+      }    
     };
   }
 
