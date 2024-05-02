@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Req, Res, UseGuards, ForbiddenException, UseInterceptors, NotFoundException, Query, UsePipes, HttpException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Req, Res, UseGuards, ForbiddenException, UseInterceptors, NotFoundException, Query, UsePipes, HttpException, ConflictException } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -117,6 +117,11 @@ export class TaskController {
   async findOne(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
       const task = await this.taskService.findOne(+id)
+
+      if (!task.project_id) {
+        throw new NotFoundException('The project associated with task does not exsits');
+      }
+
       if (req['user'].role === 'pm') {
         if (req['user'].id !== task.project_id.pm_id.id) {
           throw new ForbiddenException("Access Denied to Fetch Single Task")
@@ -139,6 +144,11 @@ export class TaskController {
   async update(@Param('id') id: string, @Body(StartDateValidationPipe) updateTaskDto: UpdateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
       const task = await this.taskService.findOne(+id)
+
+      if (!task.project_id) {
+        throw new NotFoundException('The project associated with task does not exsits');
+      }
+
       if (req['user'].role === "pm") {
         if (req['user'].id !== task.project_id.pm_id.id) {
           throw new ForbiddenException("Access Denied to Update Project")
@@ -160,6 +170,11 @@ export class TaskController {
   ) {
     try {
       const task = await this.taskService.findOne(taskUserData.task_id);
+
+      if (!task.project_id) {
+        throw new NotFoundException('The project associated with task does not exsits');
+      }
+
       if (req['user'].role === "pm") {
         if (req['user'].id !== task.project_id.pm_id.id) {
           throw new ForbiddenException("Access Denied to assign task to user")
@@ -249,6 +264,9 @@ export class TaskController {
   @Patch("/complete/:id")
   async completeTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     const task = await this.taskService.findOne(+id)
+    if (!task.project_id) {
+      throw new NotFoundException('The project associated with task does not exsits');
+    }
     if (req['user'].role === "pm") {
       if (req['user'].id !== task.project_id.pm_id.id) {
         throw new ForbiddenException("Access Denied to Change Status Project")
@@ -274,19 +292,22 @@ export class TaskController {
   async getUsersInTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
       const task = await this.taskService.findOne(+id);
-    if (!task) {
-      throw new Error('Task with given id does not exists');
-    }
-    if (req['user'].role === "pm") {
-      if (req['user'].id !== task.project_id.pm_id.id) {
-        throw new ForbiddenException("Access Denied to fetch all user of a task")
+      if (!task) {
+        throw new Error('Task with given id does not exists');
       }
-    }
-    const userEmailsInTask = await this.taskService.getUsersInTask(Number(id));
-    return sendResponse(res, httpStatusCodes.OK, 'success', 'Get All Users of a task', userEmailsInTask)
+      if (!task.project_id) {
+        throw new NotFoundException('The project associated with task does not exsits');
+      }
+      if (req['user'].role === "pm") {
+        if (req['user'].id !== task.project_id.pm_id.id) {
+          throw new ForbiddenException("Access Denied to fetch all user of a task")
+        }
+      }
+      const userEmailsInTask = await this.taskService.getUsersInTask(Number(id));
+      return sendResponse(res, httpStatusCodes.OK, 'success', 'Get All Users of a task', userEmailsInTask)
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
-    } 
+    }
   }
 
   @UseGuards(AuthGuard)
@@ -327,10 +348,10 @@ export class TaskController {
     try {
       const project = await this.projectService.findOne(+projectId);
 
-      if(!project) throw new BadRequestException('Project with given id does not exsits');
+      if (!project) throw new BadRequestException('Project with given id does not exsits');
 
-      if (req['user']?.role ===  'pm') {
-        if(req['user']?.id !== project.pm_id.id) {
+      if (req['user']?.role === 'pm') {
+        if (req['user']?.id !== project.pm_id.id) {
           throw new ForbiddenException('Access Denied');
         }
       }
