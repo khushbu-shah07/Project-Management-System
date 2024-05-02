@@ -29,7 +29,7 @@ import { EndDateValidationPipe } from '../Pipes/endDatePipe';
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }
 
-  @UseGuards(AuthGuard, ProjectManagerGuard)
+  @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
   async create(
     @Body(StartDateValidationPipe, EndDateValidationPipe) createProjectDto: CreateProjectDto,
@@ -39,9 +39,12 @@ export class ProjectController {
     try {
       const user = req['user'];
 
-      if (user.id !== createProjectDto.pm_id) {
-        throw new ForbiddenException('Access Denied')
+      if (user?.role === 'pm') {
+        if (user.id !== createProjectDto.pm_id) {
+          throw new ForbiddenException('Access Denied')
+        }
       }
+      
       const project = await this.projectService.create(createProjectDto);
       return sendResponse(
         res,
