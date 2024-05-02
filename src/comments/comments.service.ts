@@ -221,9 +221,9 @@ export class CommentsService {
     }
   }
 
-  async remove(id: number):Promise<number> {
+  async remove(id: number,emp_id:number):Promise<number> {
     try {
-      const { affected } = await this.commentRepository.delete({ id });
+      const { affected } = await this.commentRepository.delete({ id:id,emp_id:emp_id } as unknown);
       return affected;
     } catch (err) {
       throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);

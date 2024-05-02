@@ -117,4 +117,19 @@ export class CommentsController {
     }
   }
 
+  @Delete('/:id')
+  async delete(@Param('id') id:string,@Req() req,@Res() res) {
+    try{
+      let affected=await this.commentsService.remove(+id,req.user.id);
+      if(!affected){
+        throw new NotFoundException("Comment not found or Comment is of other user.");
+      }
+  
+      sendResponse(res,httpStatusCodes.OK,'ok','Comment delete',null)
+    }
+    catch(err){
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
+    }
+  }
+
 }
