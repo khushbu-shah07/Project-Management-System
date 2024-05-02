@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, Req, Res, UseGuards, ForbiddenException, UseInterceptors, NotFoundException, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, UseGuards, ForbiddenException, UseInterceptors, Query, HttpException } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -7,7 +7,7 @@ import { Response } from 'express';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
-import { Task, TaskPriority } from './entities/task.entity';
+import { Task } from './entities/task.entity';
 import { ProjectService } from 'src/project/project.service';
 import { StartDateInterceptor } from 'src/Interceptors/startDateInterceptor';
 import { EndDateInterceptor } from 'src/Interceptors/endDateInterceptor';
@@ -28,7 +28,6 @@ export class TaskController {
   async create(@Body() createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
       let task: Partial<Task>;
-      console.log(req['user'].role);
       if (req['user'].role === 'admin') {
         task = await this.taskService.create(createTaskDto)
       }
@@ -39,15 +38,14 @@ export class TaskController {
         // Only the Project Manager of the project can add task
         if (project.pm_id['id'] === req['user'].id) {
           task = await this.taskService.create(createTaskDto)
-          console.log(task['project_id']['pm_id']);
         }
         else {
-          throw new ForbiddenException("Only Pm can Add Task of the Project has Access")
+          throw new ForbiddenException("Access Denied")
         }
       }
       return sendResponse(res, httpStatusCodes.Created, "success", "Craete Task", task)
     } catch (error) {
-      throw new BadRequestException("Error in Create Task", error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -63,7 +61,7 @@ export class TaskController {
       }
       return sendResponse(res, httpStatusCodes.OK, "success", "Get All Tasks", tasks)
     } catch (error) {
-      throw new BadRequestException("Error in FindAll Tasks", error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -105,14 +103,8 @@ export class TaskController {
         'Get all project tasks',
         projectTasks
       )
-
     } catch (error) {
-      if (error instanceof ForbiddenException) {
-        throw new ForbiddenException(error.message);
-      }
-      else if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      }
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -131,11 +123,10 @@ export class TaskController {
         if (!taskUser) {
           throw new ForbiddenException("Access Denied to Fetch Single Task")
         }
-
       }
       return sendResponse(res, httpStatusCodes.OK, "success", "Get Single Task", task)
     } catch (error) {
-      throw new NotFoundException("Error in FindOne Task", error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -153,7 +144,7 @@ export class TaskController {
       await this.taskService.update(+id, updateTaskDto)
       return sendResponse(res, httpStatusCodes.OK, "success", "Update User", null)
     } catch (error) {
-      throw new BadRequestException("Error in Update Task", error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -189,7 +180,7 @@ export class TaskController {
         taskUser
       )
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -219,7 +210,7 @@ export class TaskController {
         null
       )
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
@@ -236,27 +227,31 @@ export class TaskController {
       const data = await this.taskService.remove(+id)
       return sendResponse(res, httpStatusCodes.OK, "success", "Delete Task", { deletedTask: data })
     } catch (error) {
-      throw new NotFoundException("Error in Delete Task", error.message)
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
   @UseGuards(AuthGuard)
   @Patch("/complete/:id")
   async completeTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
-    const task = await this.taskService.findOne(+id)
-    if (req['user'].role === "pm") {
-      if (req['user'].id !== task.project_id.pm_id.id) {
-        throw new ForbiddenException("Access Denied to Change Status Project")
+    try {
+      const task = await this.taskService.findOne(+id)
+      if (req['user'].role === "pm") {
+        if (req['user'].id !== task.project_id.pm_id.id) {
+          throw new ForbiddenException("Access Denied to Change Status Project")
+        }
       }
-    }
-    if (req['user'].role === 'employee') {
-      const taskUser = await this.taskService.findTaskUser(+id, req['user'].id)
-      if (!taskUser) {
-        throw new ForbiddenException("Access Denied to Change the Status")
+      if (req['user'].role === 'employee') {
+        const taskUser = await this.taskService.findTaskUser(+id, req['user'].id)
+        if (!taskUser) {
+          throw new ForbiddenException("Access Denied to Change the Status")
+        }
       }
+      const statusChange = await this.taskService.completeTask(+id)
+      return sendResponse(res, httpStatusCodes.OK, "success", "Complete Task", statusChange)
+    } catch (error) {
+      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
-    const statusChange = await this.taskService.completeTask(+id)
-    return sendResponse(res, httpStatusCodes.OK, "sucess", "Complete Task", statusChange)
   }
 }
 
