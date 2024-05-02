@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable, InternalServerErrorException, NotFoundException, Req } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 import { Department } from './entities/department.entity';
@@ -19,13 +19,19 @@ export class DepartmentService {
       await this.departmentRepository.save(department);
       return department;
     } catch (error) {
-      throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+      if(error.constraint === "UQ_471da4b90e96c1ebe0af221e07b"){
+        throw new ConflictException("Same name Department exists")
+      } else {
+        console.log(error)
+        throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
+      }
+
     }
   }
 
   async findAll(): Promise<Department[]> {
     try {
-      const departments = await this.departmentRepository.find();
+      const departments = await this.departmentRepository.find({select:{id:true,name:true,}});
       return departments;
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
@@ -37,6 +43,10 @@ export class DepartmentService {
       const department = await this.departmentRepository.findOne({
         where: {
           id: id
+        },
+        select:{
+          id:true,
+          name:true,
         }
       })
       if (!department) throw new NotFoundException('Department with given id does not exists');
@@ -51,6 +61,10 @@ export class DepartmentService {
       const department = await this.departmentRepository.findOne({
         where: {
           name: name
+        },
+        select:{
+          id:true,
+          name:true,
         }
       })
       if (!department) throw new NotFoundException('Department with given name does not exists');
