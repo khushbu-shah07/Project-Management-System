@@ -63,7 +63,7 @@ export class ReportService {
             actual_end_date: project.actualEndDate,
             work_done:{
               by_task:taskTimeLine.result,
-              total_hours:taskTimeLine.total_hours,
+              total_hours:taskTimeLine.totalHours,
             }
           },
           status: project.status,
