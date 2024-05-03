@@ -24,13 +24,25 @@ import { AdminGuard } from '../../src/auth/Guards/admin.guard';
 import { AdminProjectGuard } from '../../src/auth/Guards/adminProject.guard';
 import { StartDateValidationPipe } from '../Pipes/startDatePipe';
 import { EndDateValidationPipe } from '../Pipes/endDatePipe';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
+@ApiTags('Projects')
+@ApiBearerAuth()
 @Controller('projects')
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) { }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
+  @ApiOperation({ summary: 'Create project' })
+  @ApiCreatedResponse({ description: 'Project created' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
+  @ApiBody({
+    description: 'Project details',
+    type: CreateProjectDto
+  })
   async create(
     @Body(StartDateValidationPipe, EndDateValidationPipe) createProjectDto: CreateProjectDto,
     @Req() req: Request,
@@ -44,7 +56,7 @@ export class ProjectController {
           throw new ForbiddenException('Access Denied')
         }
       }
-      
+
       const project = await this.projectService.create(createProjectDto);
       return sendResponse(
         res,
@@ -60,6 +72,11 @@ export class ProjectController {
 
   @UseGuards(AuthGuard, AdminGuard)
   @Get()
+  @ApiOperation({ summary: 'Get all projects' })
+  @ApiResponse({ description: 'List of projects' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async findAll(@Req() req: Request, @Res() res: Response) {
     try {
       const projects = await this.projectService.findAll();
@@ -77,6 +94,11 @@ export class ProjectController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Get(':id')
+  @ApiOperation({ summary: 'Get project from id' })
+  @ApiResponse({ description: 'Get single project' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async findOne(
     @Param('id') id: string,
     @Req() req: Request,
@@ -110,6 +132,11 @@ export class ProjectController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Patch(':id')
+  @ApiOperation({ summary: 'Update project' })
+  @ApiResponse({ description: 'Updates a project' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async update(
     @Param('id') id: string,
     @Body(StartDateValidationPipe) updateProjectDto: UpdateProjectDto,
@@ -144,6 +171,11 @@ export class ProjectController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete project' })
+  @ApiResponse({ description: "deletes a project" })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async remove(
     @Param('id') id: string,
     @Req() req: Request,
@@ -177,6 +209,11 @@ export class ProjectController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Patch('/complete/:id')
+  @ApiOperation({ summary: 'Complete project' })
+  @ApiResponse({ description: 'Completes a project' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async completeProject(
     @Param('id') id: string,
     @Req() req: Request,
