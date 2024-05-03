@@ -201,6 +201,10 @@ export class TaskController {
   @ApiForbiddenResponse({  description: 'Forbidden Exception' })
   @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   @ApiConflictResponse({description:"Conflict Exception"})
+  @ApiBody({
+    description: 'Assign Task To User',
+    type: CreateTaskUserDto,
+  })
   async assignTaskToUser(
     @Body() taskUserData: CreateTaskUserDto,
     @Req() req: Request,
