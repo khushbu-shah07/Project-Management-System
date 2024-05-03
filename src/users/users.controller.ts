@@ -7,7 +7,7 @@ import { httpStatusCodes, sendResponse } from "../../utils/sendresponse";
 import { AuthGuard } from '../auth/Guards/auth.guard';
 import { AdminGuard } from '../auth/Guards/admin.guard';
 import { User } from './entities/user.entity';
-import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -20,8 +20,9 @@ export class UsersController {
   @Post()
   @ApiOperation({ summary: 'Create User' })
   @ApiCreatedResponse({ status: 201, description: 'User Created' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
-  @ApiResponse({ status: 400, description: 'BadRequest Exception' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   @ApiBody({
     description: 'User details',
     type: CreateUserDto,
@@ -39,9 +40,9 @@ export class UsersController {
   @UseGuards(AuthGuard, AdminGuard)
   @Get()
   @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'List of users' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
-  @ApiResponse({ status: 400, description: 'BadRequest Exception' }) 
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   async findAll(@Req() req: Request, @Res() res: Response) {
     try {
       const users = await this.usersService.findAll()
@@ -56,9 +57,9 @@ export class UsersController {
   @Get(':id')
   @ApiOperation({ summary: 'Get Single user' })
   @ApiResponse({ status: 200, description: 'Single user Found' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
-  @ApiResponse({ status: 400, description: 'BadRequest Exception' })
-  @ApiResponse({ status: 404, description: 'Not Found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   async findOne(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
       const user = await this.usersService.findOne(+id)
@@ -77,10 +78,10 @@ export class UsersController {
   @UseGuards(AuthGuard)
   @Patch(':id')
   @ApiOperation({ summary: 'Update User' })
-  @ApiResponse({ status: 200, description: 'Update user' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
-  @ApiResponse({ status: 400, description: 'BadRequest Exception' })
-  @ApiResponse({ status: 404, description: 'Not Found'})
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiNotFoundResponse({ description: 'Not Found'})
   async update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto, @Req() req: Request, @Res() res: Response) {
     try {
       let data: User
@@ -108,10 +109,10 @@ export class UsersController {
   @UseGuards(AuthGuard)
   @Delete(":id")
   @ApiOperation({ summary: 'Delete User' })
-  @ApiResponse({ status: 200, description: 'Delete user' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
-  @ApiResponse({ status: 400, description: 'BadRequest Exception' })
-  @ApiResponse({ status: 404, description: 'Not Found'})
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiNotFoundResponse({ description: 'Not Found'})
   async remove(@Req() req: Request, @Res() res: Response, @Param('id') id: string) {
     try {
       let data: Number;

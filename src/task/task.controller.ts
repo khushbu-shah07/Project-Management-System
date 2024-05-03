@@ -17,7 +17,7 @@ import { UserprojectService } from '../userproject/userproject.service'
 import { UsersService } from '../users/users.service'
 import { UserHasTask } from 'src/notification/serviceBasedEmail/userHasTask';
 import { TaskStatus } from 'src/notification/serviceBasedEmail/TaskStatusUpdate';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
@@ -92,7 +92,8 @@ export class TaskController {
   @ApiResponse({ status: 200, description: 'List of Tasks of Project' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({  description: 'Forbidden Exception' })
-  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiBadRequestResponse({description:"BadRequest Exception"})
+  @ApiNotFoundResponse({ description: 'Not Found'}) 
   async getProjectTasks(
     @Param('id') id: string,
     @Req() req: Request,
@@ -140,6 +141,7 @@ export class TaskController {
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({  description: 'Forbidden Exception' })
   @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiNotFoundResponse({ description: 'Not Found'})
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
@@ -172,6 +174,7 @@ export class TaskController {
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({  description: 'Forbidden Exception' })
   @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiNotFoundResponse({ description: 'Not Found'})
   @Patch(':id')
   async update(@Param('id') id: string, @Body(StartDateValidationPipe) updateTaskDto: UpdateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
@@ -201,6 +204,11 @@ export class TaskController {
   @ApiForbiddenResponse({  description: 'Forbidden Exception' })
   @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   @ApiConflictResponse({description:"Conflict Exception"})
+  @ApiNotFoundResponse({ description: 'Not Found'})
+  @ApiBody({
+    description: 'Assign Task To User',
+    type: CreateTaskUserDto,
+  })
   async assignTaskToUser(
     @Body() taskUserData: CreateTaskUserDto,
     @Req() req: Request,
@@ -253,6 +261,7 @@ export class TaskController {
   @ApiForbiddenResponse({  description: 'Forbidden Exception' })
   @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   @ApiConflictResponse({description:"Conflict Exception"})
+  @ApiNotFoundResponse({ description: 'Not Found'})
   async deleteTaskUser(
     @Body() taskUserData: CreateTaskUserDto,
     @Req() req: Request,
@@ -295,6 +304,7 @@ export class TaskController {
   @ApiForbiddenResponse({  description: 'Forbidden Exception' })
   @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   @ApiConflictResponse({description:"Conflict Exception"})
+  @ApiNotFoundResponse({ description: 'Not Found'})
   async remove(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
       const task = await this.taskService.findOne(+id)
@@ -317,6 +327,7 @@ export class TaskController {
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({  description: 'Forbidden Exception' })
   @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiNotFoundResponse({ description: 'Not Found'})
   async completeTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     const task = await this.taskService.findOne(+id)
     if (!task.project_id) {
@@ -349,6 +360,7 @@ export class TaskController {
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({  description: 'Forbidden Exception' })
   @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiNotFoundResponse({ description: 'Not Found'})
   async getUsersInTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
       const task = await this.taskService.findOne(+id);
@@ -409,6 +421,7 @@ export class TaskController {
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({  description: 'Forbidden Exception' })
   @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiNotFoundResponse({ description: 'Not Found'})
   async getAllTasksOfUserFromProject(
     @Req() req: Request,
     @Res() res: Response,
