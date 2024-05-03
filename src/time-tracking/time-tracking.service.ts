@@ -226,4 +226,32 @@ export class TimeTrackingService {
     }
   }
 
+  async delete(id:number,emp_id:number):Promise<number>{
+    try{
+      const taskHourRow=await this.taskHourRepository.createQueryBuilder('th')
+      .select('tu.id','id')
+      .addSelect('tu.user_id','user_id')
+      .leftJoin('th.taskUser_id','tu')
+      .where('th.id=:id',{id:id})
+      .getRawOne();
+
+      console.log(taskHourRow,emp_id);
+
+      if(!taskHourRow){
+        return 0;
+      }
+      else if(taskHourRow.user_id!==emp_id){
+        throw new ForbiddenException('Log is of other.');
+      }
+
+      const result= await this.taskHourRepository.delete(id);
+      console.log(result)
+
+      return result.affected;
+    }
+    catch(err){
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
+    }
+  }
+
 }

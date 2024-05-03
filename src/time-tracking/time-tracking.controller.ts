@@ -179,4 +179,28 @@ export class TimeTrackingController {
     }
   }
 
+  @Delete('/:id')
+  async delete(
+    @Param('id') id: number,
+    @Req() req,
+    @Res() res,
+  ) {
+    try {
+      const affected = await this.timeTrackingService.delete(id,req['user'].id);
+      if(!affected){
+        throw new ForbiddenException('Log not found.')
+      }
+
+      return sendResponse(
+        res,
+        httpStatusCodes.OK,
+        'success',
+        'Delete a log',
+        null,
+      );
+    } catch (err) {
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
+    }
+  }
+
 }
