@@ -17,7 +17,10 @@ import { UserprojectService } from '../userproject/userproject.service'
 import { UsersService } from '../users/users.service'
 import { UserHasTask } from 'src/notification/serviceBasedEmail/userHasTask';
 import { TaskStatus } from 'src/notification/serviceBasedEmail/TaskStatusUpdate';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
+@ApiTags('Tasks')
+@ApiBearerAuth()
 @Controller('tasks')
 export class TaskController {
   constructor(private readonly taskService: TaskService,
@@ -29,6 +32,15 @@ export class TaskController {
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
   @UsePipes(StartDateValidationPipe, EndDateValidationPipe)
+  @ApiOperation({ summary: 'Create Task' })
+  @ApiCreatedResponse({ status: 201, description: 'Task Created' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiBody({
+    description: 'Task details',
+    type: CreateTaskDto,
+  })
   async create(@Body(StartDateValidationPipe, EndDateValidationPipe) createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
       let task: Partial<Task>;
@@ -47,7 +59,7 @@ export class TaskController {
           throw new ForbiddenException("Access Denied")
         }
       }
-      return sendResponse(res, httpStatusCodes.Created, "success", "Craete Task", task)
+      return sendResponse(res, httpStatusCodes.Created, "success", "Create Task", task)
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
@@ -55,6 +67,11 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminGuard)
   @Get()
+  @ApiOperation({ summary: 'Get all Tasks' })
+  @ApiResponse({ status: 200, description: 'List of Tasks' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   async findAll(@Req() req: Request, @Res() res: Response, @Query('priority') priority: string) {
     try {
       let tasks: Task[]
@@ -71,6 +88,11 @@ export class TaskController {
 
   @UseGuards(AuthGuard)
   @Get('/project/:id')
+  @ApiOperation({ summary: 'Get Tasks of a Project' })
+  @ApiResponse({ status: 200, description: 'List of Tasks of Project' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   async getProjectTasks(
     @Param('id') id: string,
     @Req() req: Request,
@@ -113,6 +135,11 @@ export class TaskController {
   }
 
   @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get Single Task' })
+  @ApiResponse({ status: 200, description: 'Get Single Task' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
@@ -135,6 +162,11 @@ export class TaskController {
   }
 
   @UseGuards(AuthGuard, AdminProjectGuard)
+  @ApiOperation({summary:'Update Task'})
+  @ApiResponse({ status: 200, description: 'Update Task' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   @Patch(':id')
   async update(@Param('id') id: string, @Body(StartDateValidationPipe) updateTaskDto: UpdateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
@@ -153,6 +185,12 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post('/users')
+  @ApiOperation({summary:'Assign Task To User'})
+  @ApiCreatedResponse({ status: 201, description: 'Assign Task to User' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiConflictResponse({description:"Conflict Exception"})
   async assignTaskToUser(
     @Body() taskUserData: CreateTaskUserDto,
     @Req() req: Request,
@@ -196,6 +234,12 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete('/users')
+  @ApiOperation({summary:'Unassign Task To User'})
+  @ApiResponse({ status: 200, description: 'Unassign Task to User' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiConflictResponse({description:"Conflict Exception"})
   async deleteTaskUser(
     @Body() taskUserData: CreateTaskUserDto,
     @Req() req: Request,
@@ -232,6 +276,12 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete(':id')
+  @ApiOperation({summary:'Delete Task '})
+  @ApiResponse({ status: 200, description: 'Assign Task to User' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
+  @ApiConflictResponse({description:"Conflict Exception"})
   async remove(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
       const task = await this.taskService.findOne(+id)
@@ -249,6 +299,11 @@ export class TaskController {
 
   @UseGuards(AuthGuard)
   @Patch("/complete/:id")
+  @ApiOperation({summary:'Complete Task '})
+  @ApiResponse({ status: 200, description: 'Complete Task' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   async completeTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     const task = await this.taskService.findOne(+id)
     if (req['user'].role === "pm") {
@@ -273,6 +328,11 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Patch("/users/:id")
+  @ApiOperation({summary:'Get Users of Task '})
+  @ApiResponse({ status: 200, description: 'Get Users of Task' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   async getUsersInTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     const task = await this.taskService.findOne(+id);
     if (!task) {
