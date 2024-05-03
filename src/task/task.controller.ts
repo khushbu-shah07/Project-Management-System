@@ -344,6 +344,11 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Get("/:id/users")
+  @ApiOperation({summary:'Get Users In Task'})
+  @ApiResponse({ status: 200, description: 'Get Users In Task' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   async getUsersInTask(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
     try {
       const task = await this.taskService.findOne(+id);
@@ -367,6 +372,11 @@ export class TaskController {
 
   @UseGuards(AuthGuard)
   @Get('/assigned/:id')
+  @ApiOperation({summary:'Get All Tasks of User'})
+  @ApiResponse({ status: 200, description: 'Get All Tasks of User' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   async getAllTasksOfUser(
     @Req() req: Request,
     @Res() res: Response,
@@ -394,6 +404,11 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Get('/assigned/projects/:projectId/users/:userId')
+  @ApiOperation({summary:'Get All Tasks of User from Project'})
+  @ApiResponse({ status: 200, description: 'Get All Tasks of User from Project' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
+  @ApiForbiddenResponse({  description: 'Forbidden Exception' })
+  @ApiBadRequestResponse({description:"BadRequest Exception"}) 
   async getAllTasksOfUserFromProject(
     @Req() req: Request,
     @Res() res: Response,
