@@ -35,7 +35,7 @@ export class TimeTrackingController {
       const task=await this.taskService.findOne(task_id);
       
       if(task.status===TaskStatus.COMPLETED)
-        throw new Error("Task is complemented so cannot add time log.")
+        throw new Error("Task is completed so cannot add time log.")
       
       const result=await this.timeTrackingService.create(taskUser.id,createTimeTrackingDto);
       
@@ -115,9 +115,9 @@ export class TimeTrackingController {
 
   @UseGuards(AdminGuard)
   @Get()
-  findAll(@Req() req,@Res() res) {
+  async findAll(@Req() req,@Res() res) {
     try{
-      const result = this.timeTrackingService.findAll();
+      const result = await this.timeTrackingService.findAll();
       sendResponse(res,httpStatusCodes.OK,'ok','Get all time logs.',result);
     }
     catch(err){
@@ -129,7 +129,7 @@ export class TimeTrackingController {
   async update(
     @Param('id') id: number,
     @Body() updateTimeTrackingDto: UpdateTimeTrackingDto,
-    @Req() req: Request,
+    @Req() req,
     @Res() res,
   ) {
     try {
@@ -149,7 +149,7 @@ export class TimeTrackingController {
         res,
         httpStatusCodes.OK,
         'success',
-        'Updated timetrack details',
+        'Update log',
         {updatedLog:updatedData},
       );
     } catch (err) {
@@ -161,12 +161,12 @@ export class TimeTrackingController {
   @Get('/emp/:userId')
   async getUserTimeLogs(
     @Param('userId') userId: number,
-    @Req() req: Request,
+    @Req() req,
     @Res() res,
   ) {
     console.log(req['user'].role)
     try {
-      const data = await this.timeTrackingService.findOne(userId,req['user'].id);
+      const data = await this.timeTrackingService.getLogsOfEmp(userId,req['user'].id);
       return sendResponse(
         res,
         httpStatusCodes.OK,

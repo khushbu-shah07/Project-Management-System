@@ -128,7 +128,7 @@ export class TimeTrackingService {
   }
 
   // get total loghrs of all tasks of user from userId (can only be accessed by particular pm of that task)
-  async findOne(userId: number, pm_id: number):Promise<{result:{taskId:number,workedHours:number}[],totalHours:number}> {
+  async getLogsOfEmp(userId: number, pm_id: number):Promise<{result:{taskId:number,workedHours:number}[],totalHours:number}> {
     try {
       const queryBuilder =
         await this.taskHourRepository.createQueryBuilder('taskHour');
