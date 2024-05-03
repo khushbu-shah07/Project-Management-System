@@ -118,7 +118,7 @@ export class DepartmentService {
     }
   }
 
-  async findDepartmentUsers(department_id: number) {
+  async findDepartmentUsers(department_id: number):Promise<Object> {
     try {
       const departmentUsers = await this.departmentUserRepository.find({
         where: {
