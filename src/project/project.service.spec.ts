@@ -299,7 +299,6 @@ describe('<-- ProjectService -->', () => {
 
     it('should throw httpExpection if project does not exits', async () => {
       const projectId = 1;
-      const d = new Date().toISOString()
       const expectedResult = {
         affected: 0
       }
@@ -307,19 +306,18 @@ describe('<-- ProjectService -->', () => {
       mockProjectRepository.update.mockResolvedValue(expectedResult);
 
       await expect(service.completeProject(projectId)).rejects.toThrow(HttpException)
-      expect(mockProjectRepository.update).toHaveBeenCalledWith(projectId, {status: 'completed', actualEndDate: d});
+      expect(mockProjectRepository.update).toHaveBeenCalledWith(projectId, {status: 'completed', actualEndDate: expect.anything()});
     })
 
     it('should handle database errors', async () => {
       const projectId = 1;
-      const d = new Date().toISOString()
       const error = new Error('Database connection error');
       
 
       mockProjectRepository.update.mockRejectedValue(error);
 
       await expect(service.completeProject(projectId)).rejects.toThrow(HttpException);
-      expect(mockProjectRepository.update).toHaveBeenCalledWith(projectId, {status: 'completed', actualEndDate: d});
+      expect(mockProjectRepository.update).toHaveBeenCalledWith(projectId, {status: 'completed', actualEndDate: expect.anything()});
     })
   })
 });

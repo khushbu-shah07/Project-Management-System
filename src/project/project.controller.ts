@@ -20,10 +20,10 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
 import { Request, Response } from 'express';
-import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { AdminGuard } from 'src/auth/Guards/admin.guard';
-import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
+import { ProjectManagerGuard } from '../../src/auth/Guards/pm.guard';
+import { AuthGuard } from '../../src/auth/Guards/auth.guard';
+import { AdminGuard } from '../../src/auth/Guards/admin.guard';
+import { AdminProjectGuard } from '../../src/auth/Guards/adminProject.guard';
 import { UserprojectService } from 'src/userproject/userproject.service';
 import { ProjectStatus } from '../notification/serviceBasedEmail/projectStatusUpdate'
 import { UsersService } from 'src/users/users.service';
