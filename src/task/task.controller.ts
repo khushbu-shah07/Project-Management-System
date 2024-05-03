@@ -15,8 +15,6 @@ import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
 import { UserprojectService } from '../userproject/userproject.service'
 import { UsersService } from '../users/users.service'
-// import { UserHasTask } from 'src/notification/serviceBasedEmail/userHasTask';
-// import { TaskStatus } from 'src/notification/serviceBasedEmail/TaskStatusUpdate';
 
 @Controller('tasks')
 export class TaskController {
@@ -174,13 +172,13 @@ export class TaskController {
 
       if (!userProject || userProject.length === 0) throw new Error('The user you are trying to assgin this task is not associated with the project of this task.')
 
-      const taskUser = await this.taskService.assignTask(taskUserData, task);
-
-
-
-      const pmOrAdminId = req['user'].id;
-      const taskTitle = task.title;
-      const projectId = task.project_id.id;
+        const pmOrAdminId = req['user'].id;
+        
+        const pmOrAdminDetail=await this.usersService.findOne(pmOrAdminId);
+        const pmOrAdminEmail=pmOrAdminDetail.email;
+    
+      const taskUser = await this.taskService.assignTask(taskUserData, task,pmOrAdminEmail);
+  
       // UserHasTask.assignedOrRemoveToTask(this.usersService, this.projectService, pmOrAdminId, 'Add', taskUserData, taskTitle, projectId)
       return sendResponse(
         res,

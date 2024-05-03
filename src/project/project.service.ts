@@ -1,8 +1,10 @@
 import {
   BadRequestException,
   HttpException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -21,8 +23,9 @@ export class ProjectService {
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
     private readonly userService: UsersService,
-    private readonly notificationService:NotificationService,
-    private readonly userProjectService:UserprojectService
+    private readonly userProjectService:UserprojectService,
+    // private readonly notificationService:NotificationService,
+    @Inject(forwardRef(()=>NotificationService)) private readonly notificationService:NotificationService,
   ) {}
   async create(projectData: CreateProjectDto): Promise<Project> {
     try {

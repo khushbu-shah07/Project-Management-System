@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task, TaskPriority, TaskStatus } from './entities/task.entity';
@@ -8,12 +8,16 @@ import { Repository } from 'typeorm';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
 import { Project, ProjectStatus } from '../../src/project/entities/project.entity';
 import { httpStatusCodes } from '../../utils/sendresponse';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class TaskService {
   constructor(@InjectRepository(Task) private readonly taskRepository: Repository<Task>,
     @InjectRepository(TaskUser) private readonly taskUserRepository: Repository<TaskUser>,
-    @InjectRepository(Project) private readonly projectRepository: Repository<Project>) {
+    @InjectRepository(Project) private readonly projectRepository: Repository<Project>,
+    // private readonly notificationService:NotificationService,
+    @Inject(forwardRef(() => NotificationService))  private readonly notificationService:NotificationService
+  ) {
   }
   async create(createTaskDto: CreateTaskDto) {
     try {
@@ -129,7 +133,7 @@ export class TaskService {
     }
   }
 
-  async assignTask(taskUserData: CreateTaskUserDto, task: Task) {
+  async assignTask(taskUserData: CreateTaskUserDto, task: Task,pmOrAdminEmail:string) {
     try {
       const isExists = await this.findTaskUser(taskUserData.task_id, taskUserData.user_id);
       if (isExists > 0) throw new BadRequestException('The task is already assigned to this user')
@@ -147,7 +151,10 @@ export class TaskService {
       await this.projectRepository.update(project_id, {
         status: ProjectStatus.IN_PROGRESS
       })
-
+      const taskTitle = task.title;
+      const taskId=task.id;
+         console.log('here')
+      await this.notificationService.TaskStatusUpdate(pmOrAdminEmail,taskId,'Assign')
       return taskUser;
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
@@ -220,7 +227,9 @@ export class TaskService {
 
   async getUsersInTask(taskId: number) {
     try {
+      console.log('inside getuserintask',taskId,typeof(taskId))
       const usersInTask = await this.taskUserRepository.find({ where: { id: taskId } })
+      console.log(usersInTask)
       const userEmailsInTask = usersInTask.map((user) => user.user_id.email);
       return userEmailsInTask;
     }

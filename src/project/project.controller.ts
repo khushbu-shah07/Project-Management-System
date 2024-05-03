@@ -25,7 +25,6 @@ import { AuthGuard } from '../../src/auth/Guards/auth.guard';
 import { AdminGuard } from '../../src/auth/Guards/admin.guard';
 import { AdminProjectGuard } from '../../src/auth/Guards/adminProject.guard';
 import { UserprojectService } from 'src/userproject/userproject.service';
-// import { ProjectStatus } from '../notification/serviceBasedEmail/projectStatusUpdate'
 import { UsersService } from 'src/users/users.service';
 import { StartDateValidationPipe } from '../Pipes/startDatePipe';
 import { EndDateValidationPipe } from '../Pipes/endDatePipe';
@@ -200,7 +199,7 @@ export class ProjectController {
     const pmOrAdminEmail = project.pm_id.email;
     const projectName = project.name
     await this.projectService.completeProject(+id,projectId,pmOrAdminEmail,projectName);
-    
+
     const allUsersInProject=[]
     return sendResponse(
       res,
