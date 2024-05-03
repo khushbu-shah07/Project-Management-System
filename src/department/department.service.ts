@@ -118,14 +118,28 @@ export class DepartmentService {
     }
   }
 
-  async findDepartmentUsers(department_id: number): Promise<DepartmentUser[]> {
+  async findDepartmentUsers(department_id: number) {
     try {
       const departmentUsers = await this.departmentUserRepository.find({
         where: {
-          department_id: { id: department_id }
-        }
+          department_id: { id: department_id },
+        },
+        select:{
+          user_id:{
+            id:true,
+            name:true,
+            email:true
+          }
+        },
+        relations:['user_id']
       })
-      return departmentUsers;
+      const users = departmentUsers.map((du)=>{
+        return du.user_id
+      })
+      const deptUsers =  users.filter((user)=>{
+        return user !== null
+      })
+      return {department:departmentUsers[0].department_id,DepartmentUsers:deptUsers};
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }

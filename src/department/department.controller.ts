@@ -147,7 +147,7 @@ export class DepartmentController {
     }
   }
 
-  @Get('/users/:id')
+  @Get('/:id/users')
   async getDepartmentUsers(
     @Param('id') id: string,
     @Req() req: Request,

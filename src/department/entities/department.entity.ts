@@ -12,6 +12,6 @@ export class Department {
   @OneToMany(() => DepartmentUser, (departmentUser) => departmentUser.department_id)
   departments: DepartmentUser[]
 
-  @DeleteDateColumn()
+  @DeleteDateColumn({select:false})
   deleted_at: Date
 }
