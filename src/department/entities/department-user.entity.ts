@@ -7,9 +7,9 @@ export class DepartmentUser {
   @PrimaryGeneratedColumn()
   id: number
 
-  @ManyToOne(() => Department, (department) => department.departments, { nullable: false, cascade: true, eager: true })
+  @ManyToOne(() => Department, (department) => department.departments, { nullable: false, cascade: true, eager:true })
   department_id: Department
 
-  @ManyToOne(() => User, (user) => user.departments, { nullable: false, cascade: true, eager: true })
+  @ManyToOne(() => User, (user) => user.departments, { nullable: false, cascade: true})
   user_id: User
 }
