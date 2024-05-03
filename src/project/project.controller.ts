@@ -29,15 +29,27 @@ import { ProjectStatus } from '../notification/serviceBasedEmail/projectStatusUp
 import { UsersService } from 'src/users/users.service';
 import { StartDateValidationPipe } from '../Pipes/startDatePipe';
 import { EndDateValidationPipe } from '../Pipes/endDatePipe';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
+@ApiTags('Projects')
+@ApiBearerAuth()
 @Controller('projects')
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService, private readonly userProject:UserprojectService , private readonly usersService:UsersService ) { }
+  constructor(private readonly projectService: ProjectService, private readonly userProject: UserprojectService, private readonly usersService: UsersService) { }
 
   @UseGuards(AuthGuard, ProjectManagerGuard)
   @Post()
+  @ApiOperation({ summary: 'Create project' })
+  @ApiCreatedResponse({ description: 'Project created' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
+  @ApiBody({
+    description: 'Project details',
+    type: CreateProjectDto
+  })
   async create(
-    @Body(StartDateValidationPipe,EndDateValidationPipe) createProjectDto: CreateProjectDto,
+    @Body(StartDateValidationPipe, EndDateValidationPipe) createProjectDto: CreateProjectDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
@@ -62,6 +74,11 @@ export class ProjectController {
 
   @UseGuards(AuthGuard, AdminGuard)
   @Get()
+  @ApiOperation({ summary: 'Get all projects' })
+  @ApiResponse({ description: 'List of projects' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async findAll(@Req() req: Request, @Res() res: Response) {
     try {
       const projects = await this.projectService.findAll();
@@ -79,6 +96,11 @@ export class ProjectController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Get(':id')
+  @ApiOperation({ summary: 'Get project from id' })
+  @ApiResponse({ description: 'Get single project' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async findOne(
     @Param('id') id: string,
     @Req() req: Request,
@@ -112,6 +134,11 @@ export class ProjectController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Patch(':id')
+  @ApiOperation({ summary: 'Update project' })
+  @ApiResponse({ description: 'Updates a project' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async update(
     @Param('id') id: string,
     @Body(StartDateValidationPipe) updateProjectDto: UpdateProjectDto,
@@ -146,6 +173,11 @@ export class ProjectController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete project' })
+  @ApiResponse({ description: "deletes a project" })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async remove(
     @Param('id') id: string,
     @Req() req: Request,
@@ -179,6 +211,11 @@ export class ProjectController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Patch('/complete/:id')
+  @ApiOperation({ summary: 'Complete project' })
+  @ApiResponse({ description: 'Completes a project' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async completeProject(
     @Param('id') id: string,
     @Req() req: Request,
@@ -192,36 +229,36 @@ export class ProjectController {
       }
     }
     await this.projectService.completeProject(+id);
-     
-    const pmOrAdminEmail=project.pm_id.email;
-    const projectId=project.id;
-    const projectName=project.name
-  
-    const allUsersInProject=await this.userProject.getUsersFromProject(projectId)
-    
- const allUsersId=[];
-     for(const user in allUsersInProject){
-      const userID=allUsersInProject[user].user_detail.user_id;
-        if(userID){
-          allUsersId.push(userID)
-        }
-     }
 
-    let allUsersEmail=[] ;
-    for(const userId in allUsersId){
-       const usersDetail=await this.usersService.findOne(Number(allUsersId[userId]));
-       allUsersEmail.push(usersDetail.email)
+    const pmOrAdminEmail = project.pm_id.email;
+    const projectId = project.id;
+    const projectName = project.name
+
+    const allUsersInProject = await this.userProject.getUsersFromProject(projectId)
+
+    const allUsersId = [];
+    for (const user in allUsersInProject) {
+      const userID = allUsersInProject[user].user_detail.user_id;
+      if (userID) {
+        allUsersId.push(userID)
+      }
+    }
+
+    let allUsersEmail = [];
+    for (const userId in allUsersId) {
+      const usersDetail = await this.usersService.findOne(Number(allUsersId[userId]));
+      allUsersEmail.push(usersDetail.email)
 
     }
-    console.log("all users",allUsersEmail)
-    ProjectStatus.projectStatusUpdate(pmOrAdminEmail,allUsersInProject,'completed',projectName,this.usersService)
+    console.log("all users", allUsersEmail)
+    ProjectStatus.projectStatusUpdate(pmOrAdminEmail, allUsersInProject, 'completed', projectName, this.usersService)
 
     return sendResponse(
       res,
       httpStatusCodes.OK,
       'success',
       'Complete project',
-       allUsersInProject
+      allUsersInProject
     )
   }
 }
