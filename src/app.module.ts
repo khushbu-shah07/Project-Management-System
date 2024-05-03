@@ -14,7 +14,8 @@ import { CommentsModule } from './comments/comments.module';
 import { TimeTrackingModule } from './time-tracking/time-tracking.module';
 import { ReportModule } from './report/report.module';
 import { MorganModule, MorganInterceptor } from 'nest-morgan';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { CustomExceptionFilter } from 'utils/customExceptionFilter';
 
 @Module({
   imports: [TypeOrmModule.forRoot(dataSourceOptions), UsersModule, ProjectModule, AuthModule, DepartmentModule, TeamModule, TaskModule, UserprojectModule, CommentsModule, TimeTrackingModule, ReportModule, MorganModule],
@@ -24,7 +25,10 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
       provide: APP_INTERCEPTOR,
       useClass: MorganInterceptor("combined"),
     },
-
+    {
+        provide: APP_FILTER,
+        useClass: CustomExceptionFilter,
+    }
   ],
 })
 export class AppModule { }
