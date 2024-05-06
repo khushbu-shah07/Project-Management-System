@@ -4,6 +4,7 @@ import {
   Injectable,
   forwardRef,
 } from '@nestjs/common';
+import { CreateDepartmentUserDto } from 'src/department/dto/create-department-user.dto';
 import { ProjectService } from 'src/project/project.service';
 import { CreateTaskUserDto } from 'src/task/dto/create-task-user.dto';
 import { TaskService } from 'src/task/task.service';
@@ -135,6 +136,21 @@ export class NotificationService {
           );
         }
       }
-    } catch (err) {}
+    } catch (err) {
+      throw new BadRequestException(err.message);
+    }
   }
+  async addOrRemoveUserToDepartment( adminId: number, typeOfOperation: string, departmentUserData: CreateDepartmentUserDto) {
+    try {
+        const adminDetail = await this.usersService.findOne(adminId);
+        const adminEmail = adminDetail.email;
+        
+        const user = await this.usersService.findOne(departmentUserData.user_id);
+        const userEmail = user.email;
+        
+        sendNotifyEmail(adminEmail, userEmail, `You have been ${typeOfOperation} to the department`, 'None', 'None');
+    } catch (error) {
+        throw new BadRequestException(error.message);
+    }
+}
 }

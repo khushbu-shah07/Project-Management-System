@@ -7,11 +7,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateDepartmentUserDto } from './dto/create-department-user.dto';
 import { httpStatusCodes } from 'utils/sendresponse';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class DepartmentService {
 
-  constructor(@InjectRepository(Department) private readonly departmentRepository: Repository<Department>, @InjectRepository(DepartmentUser) private readonly departmentUserRepository: Repository<DepartmentUser>) { }
+  constructor(@InjectRepository(Department) private readonly departmentRepository: Repository<Department>, @InjectRepository(DepartmentUser) private readonly departmentUserRepository: Repository<DepartmentUser>,
+   private readonly notificationService:NotificationService
+) { }
 
   async create(departmentData: CreateDepartmentDto): Promise<Department> {
     try {
@@ -92,20 +95,22 @@ export class DepartmentService {
     }
   }
 
-  async addUserToDepartment(departmentUserData: CreateDepartmentUserDto): Promise<DepartmentUser> {
+  async addUserToDepartment(departmentUserData: CreateDepartmentUserDto,adminId:number): Promise<DepartmentUser> {
     try {
       const isExists = await this.findUserInDepartment(departmentUserData.department_id, departmentUserData.user_id);
       if (isExists > 0) throw new BadRequestException('User already exists in this departmnet');
       await this.findOne(departmentUserData.department_id);
       const departmentUser = await this.departmentUserRepository.create(departmentUserData as unknown as DepartmentUser)
       await this.departmentUserRepository.save(departmentUser)
+
+      await this.notificationService.addOrRemoveUserToDepartment(adminId,'Add',departmentUserData)
       return departmentUser;
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async removeFromDepartment(departmentUserData: CreateDepartmentUserDto) {
+  async removeFromDepartment(departmentUserData: CreateDepartmentUserDto,adminId:number) {
     try {
       const result = await this.departmentUserRepository
         .createQueryBuilder('')
@@ -114,6 +119,7 @@ export class DepartmentService {
         .andWhere('user_id = :userId', { userId: departmentUserData.user_id })
         .execute()
       if (result.affected === 0) throw new BadRequestException('User does not exists in this department')
+        await this.notificationService.addOrRemoveUserToDepartment(adminId,'Remove',departmentUserData)
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }

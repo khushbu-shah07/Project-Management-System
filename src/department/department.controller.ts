@@ -115,10 +115,8 @@ export class DepartmentController {
     @Res() res: Response,
   ) {
     try {
-      await this.departmentService.removeFromDepartment(departmentUserData);
       const adminId=req['user'].id;
-
-      // UserInDepartment.addOrRemoveUser( this.usersService , adminId,'Removed',departmentUserData)
+      await this.departmentService.removeFromDepartment(departmentUserData,adminId);
 
       return sendResponse(
         res,
@@ -140,12 +138,9 @@ export class DepartmentController {
     @Res() res: Response,
   ) {
     try {
+      const adminId=req['user'].id;
       const departmentUser =
-        await this.departmentService.addUserToDepartment(departmentUserData);
-
-        const adminId=req['user'].id;
-
-        // UserInDepartment.addOrRemoveUser( this.usersService , adminId,'Added',departmentUserData)
+        await this.departmentService.addUserToDepartment(departmentUserData,adminId);
 
       return sendResponse(
         res,
