@@ -6,9 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Comment } from './entities/comment.entity';
 import { ProjectModule } from 'src/project/project.module';
 import { UsersModule } from 'src/users/users.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
-  imports:[TaskModule,TypeOrmModule.forFeature([Comment]),ProjectModule,UsersModule],
+  imports:[TaskModule,TypeOrmModule.forFeature([Comment]),ProjectModule,UsersModule,NotificationModule],
   controllers: [CommentsController],
   providers: [CommentsService],
 })

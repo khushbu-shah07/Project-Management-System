@@ -6,12 +6,15 @@ import { Comment } from './entities/comment.entity';
 import { Repository } from 'typeorm';
 import { TaskService } from 'src/task/task.service';
 import { httpStatusCodes } from 'utils/sendresponse';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class CommentsService {
   constructor(
     @InjectRepository(Comment)
-    private readonly commentRepository: Repository<Comment>) {}
+    private readonly commentRepository: Repository<Comment>,
+   private readonly notificationService:NotificationService
+  ) {}
 
   async findAll():Promise<Comment[]> {
     try {
@@ -159,6 +162,7 @@ export class CommentsService {
   }
 
   async taskBelongsToPM(task_id: number, pm_id: number):Promise<boolean> {
+    console.log("hello",task_id,pm_id)
     try {
       return await this.commentRepository.exists({
         where: {
@@ -183,14 +187,14 @@ export class CommentsService {
     }
   }
 
-  async create(emp_id: number, createCommentDto: CreateCommentDto):Promise<Comment> {
+  async create(emp_id: number, createCommentDto: CreateCommentDto,pmEmail:string):Promise<Comment> {
     try {
       const comment = await this.commentRepository.create({
         emp_id: emp_id,
         ...createCommentDto,
       } as unknown as Comment);
       await this.commentRepository.save(comment);
-
+    await this.notificationService.UserHasComment(pmEmail,createCommentDto.task_id,'created')
       return comment;
     } catch (err) {
       throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request']);
