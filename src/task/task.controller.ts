@@ -28,14 +28,12 @@ export class TaskController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
-  @UsePipes(StartDateValidationPipe, EndDateValidationPipe)
-  async create(@Body(StartDateValidationPipe, EndDateValidationPipe) createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
+  async create(@Body() createTaskDto: CreateTaskDto, @Req() req: Request, @Res() res: Response) {
     try {
       let task: Partial<Task>;
       if (req['user'].role === 'admin') {
         task = await this.taskService.create(createTaskDto)
       }
-
       else {
         const project = await this.projectService.findOne(createTaskDto.project_id);
 

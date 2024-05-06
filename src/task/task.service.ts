@@ -8,17 +8,46 @@ import { Repository } from 'typeorm';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
 import { Project, ProjectStatus } from '../../src/project/entities/project.entity';
 import { httpStatusCodes } from '../../utils/sendresponse';
+import { ProjectService } from 'src/project/project.service';
 
 @Injectable()
 export class TaskService {
   constructor(@InjectRepository(Task) private readonly taskRepository: Repository<Task>,
     @InjectRepository(TaskUser) private readonly taskUserRepository: Repository<TaskUser>,
-    @InjectRepository(Project) private readonly projectRepository: Repository<Project>) {
+    @InjectRepository(Project) private readonly projectRepository: Repository<Project>,
+    private readonly projectService: ProjectService) {
   }
+
+  private validateStartDate(taskStartDate: Date, projectEndDate: Date, projectStartDate: Date): boolean {
+    const ts = new Date(taskStartDate)
+    const ps = new Date(projectStartDate)
+    const pe = new Date(projectEndDate)
+    if (ts.getTime() > ps.getTime() && ts.getTime() < pe.getTime()) return true
+    else return false
+  }
+
+  private validateEndDate(taskEndDate: Date,taskStartDate:Date, projectEndDate: Date): boolean {
+    const te = new Date(taskEndDate)
+    const ts = new Date(taskStartDate)
+    const pe = new Date(projectEndDate)
+    if (te.getTime() < pe.getTime() && te.getTime() >= ts.getTime()) return true
+    else return false
+  }
+
   async create(createTaskDto: CreateTaskDto) {
     try {
       const task = await this.taskRepository.create(createTaskDto as unknown as Task);
-      await this.taskRepository.save(task);
+      const project = await this.projectService.findOne(createTaskDto.project_id)
+      if (this.validateStartDate(createTaskDto.startDate, project.expectedEndDate, project.startDate)) {
+        if (this.validateEndDate(createTaskDto.expectedEndDate, createTaskDto.startDate, project.expectedEndDate)) {
+          await this.taskRepository.save(task);
+        } else {
+          throw new BadRequestException("Invalid Task End Date")
+        }
+      } else {
+        throw new BadRequestException("Invalid Task Start Date")
+      }
+
       return task;
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
@@ -245,7 +274,7 @@ export class TaskService {
     }
   }
 
-  async getAllTasksAssignedToUserFromProject(project_id: number, user_id: number):Promise<TaskUser[]> {
+  async getAllTasksAssignedToUserFromProject(project_id: number, user_id: number): Promise<TaskUser[]> {
     try {
       const tasks = await this.taskUserRepository.find({
         where: {
