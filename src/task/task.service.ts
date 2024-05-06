@@ -151,10 +151,7 @@ export class TaskService {
       await this.projectRepository.update(project_id, {
         status: ProjectStatus.IN_PROGRESS
       })
-      const taskTitle = task.title;
-      const taskId=task.id;
-         console.log('here')
-      await this.notificationService.TaskStatusUpdate(pmOrAdminEmail,taskId,'Assign')
+    
       return taskUser;
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
@@ -175,10 +172,16 @@ export class TaskService {
     }
   }
 
-  async completeTask(id: number) {
+  async completeTask(id: number,task: Task,pmOrAdminEmail:string) {
     try {
       const statusUpdate = await this.taskRepository.update({ id }, { status: TaskStatus.COMPLETED, actualEndDate: new Date().toISOString() })
       if (statusUpdate.affected === 0) throw new NotFoundException("Task with given id does not exists")
+    
+        const taskTitle = task.title;
+        const taskId=task.id;
+        await this.notificationService.TaskStatusUpdate(pmOrAdminEmail,taskId,'task is completed')
+
+
       return "Task Status Updated Successfully"
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])

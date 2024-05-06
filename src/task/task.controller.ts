@@ -260,12 +260,10 @@ export class TaskController {
         throw new ForbiddenException("Access Denied to Change the Status")
       }
     }
-    const taskTitle = task.title;
     const pmDetail = await this.usersService.findOne(task.project_id.pm_id.id)
     const pmEmail = pmDetail.email;
-    const statusChange = await this.taskService.completeTask(+id);
-    // TaskStatus.TaskStatusUpdate(pmEmail, id, 'completed', this.taskService, taskTitle, this.projectService)
-    return sendResponse(res, httpStatusCodes.OK, "sucess", "Complete Task", statusChange)
+    const statusChange = await this.taskService.completeTask(+id,task,pmEmail);
+      return sendResponse(res, httpStatusCodes.OK, "sucess", "Complete Task", statusChange)
   }
 
 
