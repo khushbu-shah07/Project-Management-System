@@ -208,13 +208,11 @@ export class TaskController {
           throw new ForbiddenException("Access Denied to remove user from task")
         }
       }
-
-      await this.taskService.removeTaskUser(taskUserData);
-
       const pmOrAdminId = req['user'].id;
-      const taskTitle = task.title;
-      const projectId = task.project_id.id;
-      // UserHasTask.assignedOrRemoveToTask(this.usersService, this.projectService, pmOrAdminId, 'Remove', taskUserData, taskTitle, projectId)
+        
+      const pmOrAdminDetail=await this.usersService.findOne(pmOrAdminId);
+      const pmOrAdminEmail=pmOrAdminDetail.email;
+      await this.taskService.removeTaskUser(taskUserData,task,pmOrAdminEmail);
 
       return sendResponse(
         res,

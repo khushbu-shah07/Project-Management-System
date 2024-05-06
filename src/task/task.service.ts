@@ -151,14 +151,14 @@ export class TaskService {
       await this.projectRepository.update(project_id, {
         status: ProjectStatus.IN_PROGRESS
       })
-    
+    await this.notificationService.assignedOrRemoveToTask(pmOrAdminEmail,'Assign',taskUserData,task.title,task.project_id.id)
       return taskUser;
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
   }
 
-  async removeTaskUser(taskUserData: CreateTaskUserDto) {
+  async removeTaskUser(taskUserData: CreateTaskUserDto,task: Task,pmOrAdminEmail:string) {
     try {
       const result = await this.taskUserRepository
         .createQueryBuilder('')
@@ -167,6 +167,8 @@ export class TaskService {
         .andWhere('user_id = :userId', { userId: taskUserData.user_id })
         .execute()
       if (result.affected === 0) throw new BadRequestException('The task is not assigned to this user')
+        await this.notificationService.assignedOrRemoveToTask(pmOrAdminEmail,'Assign',taskUserData,task.title,task.project_id.id)
+      
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }

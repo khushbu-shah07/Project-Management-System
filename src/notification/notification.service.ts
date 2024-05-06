@@ -5,6 +5,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { ProjectService } from 'src/project/project.service';
+import { CreateTaskUserDto } from 'src/task/dto/create-task-user.dto';
 import { TaskService } from 'src/task/task.service';
 import { UsersService } from 'src/users/users.service';
 import sendNotifyEmail from 'utils/Email/sendNotifyMail';
@@ -13,9 +14,11 @@ import sendNotifyEmail from 'utils/Email/sendNotifyMail';
 export class NotificationService {
   constructor(
     private readonly usersService: UsersService,
-    @Inject(forwardRef(()=>ProjectService)) private readonly projectService:ProjectService,
-    @Inject(forwardRef(()=>TaskService)) private readonly taskService:TaskService,
-  ) {};
+    @Inject(forwardRef(() => ProjectService))
+    private readonly projectService: ProjectService,
+    @Inject(forwardRef(() => TaskService))
+    private readonly taskService: TaskService,
+  ) {}
 
   async projectStatusUpdate(
     pmOrAdminEmail: string,
@@ -55,10 +58,8 @@ export class NotificationService {
   async TaskStatusUpdate(pmEmail: string, taskId: number, taskStatus: string) {
     console.log('inside notify');
     try {
-      const userEmailsInTask = await this.taskService.getUsersInTask(
-        taskId,
-      );
-      console.log(userEmailsInTask)
+      const userEmailsInTask = await this.taskService.getUsersInTask(taskId);
+      console.log(userEmailsInTask);
       const taskDetail = await this.taskService.findOne(taskId);
       const taskTitle = taskDetail.title;
 
@@ -81,6 +82,33 @@ export class NotificationService {
           console.error('error while sending mails to users');
         }
       }
-    } catch (err) {}
+    } catch (err) {
+      throw new BadRequestException(err.message);
+    }
+  }
+  async assignedOrRemoveToTask(
+    pmOrAdminEmail: string,
+    typeOfOperation: string,
+    taskUserData: CreateTaskUserDto,
+    taskTitle: string,
+    projectId: number,
+  ) {
+    try {
+      const user = await this.usersService.findOne(taskUserData.user_id);
+      const userEmail = user.email;
+
+      const projectDetail = await this.projectService.findOne(projectId);
+      const projectName = projectDetail.name;
+
+      sendNotifyEmail(
+        pmOrAdminEmail,
+        userEmail,
+        `You have been ${typeOfOperation} to task`,
+        `${taskTitle}`,
+        `${projectName}`,
+      );
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }
