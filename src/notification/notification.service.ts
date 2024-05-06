@@ -112,45 +112,80 @@ export class NotificationService {
       throw new BadRequestException(error.message);
     }
   }
-  async UserHasComment (
+  async UserHasComment(
     emailSendBy: string,
     taskId: number,
-    commentStatus:string,
+    commentStatus: string,
   ) {
     try {
-      const userEmailsInTask = await this.taskService.getUsersInTask(Number(taskId));
-      const taskDetail=await this.taskService.findOne(taskId);
-      const taskTitle=taskDetail.title;
+      const userEmailsInTask = await this.taskService.getUsersInTask(
+        Number(taskId),
+      );
+      const taskDetail = await this.taskService.findOne(taskId);
+      const taskTitle = taskDetail.title;
 
-    const projectDetail=await this.projectService.findOne(taskDetail.project_id.id)
+      const projectDetail = await this.projectService.findOne(
+        taskDetail.project_id.id,
+      );
 
- const projectName=projectDetail.name
-
+      const projectName = projectDetail.name;
 
       for (const userEmail in userEmailsInTask) {
         try {
-           sendNotifyEmail(emailSendBy, userEmailsInTask[userEmail] , `the comment has been ${commentStatus} ` ,taskTitle,projectName)
-        } catch (error) {
-          console.error(
-            'error while sending mails to users'
+          sendNotifyEmail(
+            emailSendBy,
+            userEmailsInTask[userEmail],
+            `the comment has been ${commentStatus} `,
+            taskTitle,
+            projectName,
           );
+        } catch (error) {
+          console.error('error while sending mails to users');
         }
       }
     } catch (err) {
       throw new BadRequestException(err.message);
     }
   }
-  async addOrRemoveUserToDepartment( adminId: number, typeOfOperation: string, departmentUserData: CreateDepartmentUserDto) {
+  async addOrRemoveUserToDepartment(
+    adminId: number,
+    typeOfOperation: string,
+    departmentUserData: CreateDepartmentUserDto,
+  ) {
     try {
-        const adminDetail = await this.usersService.findOne(adminId);
-        const adminEmail = adminDetail.email;
+      const adminDetail = await this.usersService.findOne(adminId);
+      const adminEmail = adminDetail.email;
+
+      const user = await this.usersService.findOne(departmentUserData.user_id);
+      const userEmail = user.email;
+
+      sendNotifyEmail(
+        adminEmail,
+        userEmail,
+        `You have been ${typeOfOperation} to the department`,
+        'None',
+        'None',
+      );
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
+  }
+  async addOrRemoveToTeam( pmOrAdminId: number, typeOfOperation: string, userId:number , teamId: number,projectName:string) {
+    try {
         
-        const user = await this.usersService.findOne(departmentUserData.user_id);
-        const userEmail = user.email;
-        
-        sendNotifyEmail(adminEmail, userEmail, `You have been ${typeOfOperation} to the department`, 'None', 'None');
+        const pmOrAdminDetail =await this.usersService.findOne(pmOrAdminId);
+        let adminEmail = pmOrAdminDetail.email;
+
+
+         const user = await this.usersService.findOne(userId);
+         const userEmail =user.email;
+
+         sendNotifyEmail(adminEmail,userEmail,`You have been ${typeOfOperation} to the team`,'None',`${projectName}`)
+
+         
     } catch (error) {
         throw new BadRequestException(error.message);
     }
 }
+
 }

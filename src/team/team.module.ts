@@ -7,9 +7,10 @@ import { TeamUser } from './entities/team-user.entity';
 import { UsersModule } from 'src/users/users.module';
 import { ProjectModule } from 'src/project/project.module';
 import { UserprojectModule } from 'src/userproject/userproject.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Team, TeamUser]), UserprojectModule, ProjectModule,UsersModule],
+  imports: [TypeOrmModule.forFeature([Team, TeamUser]), UserprojectModule, ProjectModule,UsersModule,NotificationModule],
   controllers: [TeamController],
   providers: [TeamService],
 })

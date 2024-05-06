@@ -115,16 +115,19 @@ export class TeamController {
     @Res() res: Response,
   ) {
     try {
-      await this.teamService.removeUserFromTeam(teamUserData);
 
-      
       const pmOrAdminId=req['user'].id;
 
-      const userId=teamUserData.user_id;
-    const teamId=teamUserData.team_id
-     
-      // UserInTeam.addOrRemoveToTeam(this.usersService,this.projectService,this.teamService,pmOrAdminId,'Remove',userId,teamId)
-
+      const teamId=teamUserData.team_id
+  
+      const teamDeail = await this.teamService.findOne(teamId);
+      const projectID = teamDeail.project_id;
+      
+      const projectDetail = await this.projectService.findOne(projectID);
+      const projectName =projectDetail.name;
+      
+      const teamUser = await this.teamService.removeUserFromTeam(teamUserData,pmOrAdminId,projectName);
+      
       return sendResponse(
         res,
         httpStatusCodes.OK,
@@ -245,15 +248,19 @@ export class TeamController {
     @Res() res: Response,
   ) {
     try {
-      const teamUser = await this.teamService.addUserToTeam(teamUserData);
-
+      
       const pmOrAdminId=req['user'].id;
 
-      const userId=teamUserData.user_id;
     const teamId=teamUserData.team_id
-     
-      // UserInTeam.addOrRemoveToTeam(this.usersService,this.projectService,this.teamService,pmOrAdminId,'Add',userId,teamId)
 
+    const teamDeail = await this.teamService.findOne(teamId);
+    const projectID = teamDeail.project_id;
+    
+    const projectDetail = await this.projectService.findOne(projectID);
+    const projectName =projectDetail.name;
+    
+    const teamUser = await this.teamService.addUserToTeam(teamUserData,pmOrAdminId,projectName);
+    
       return sendResponse(
         res,
         httpStatusCodes.Created,

@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm/repository/Repository';
 import { TeamUser } from './entities/team-user.entity';
 import { CreateTeamUserDto } from './dto/create-team-user.dto';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class TeamService {
@@ -18,6 +19,7 @@ export class TeamService {
     @InjectRepository(Team) private readonly teamRepository: Repository<Team>,
     @InjectRepository(TeamUser)
     private readonly teamUserRepository: Repository<TeamUser>,
+    private readonly notificationService:NotificationService,
   ) {}
 
   async create(createTeamDto: CreateTeamDto) {
@@ -86,7 +88,7 @@ export class TeamService {
       throw new BadRequestException(error.message);
     }
   }
-  async addUserToTeam(teamUserData: CreateTeamUserDto) {
+  async addUserToTeam(teamUserData: CreateTeamUserDto,pmOrAdminId:number,projectName:string) {
     try {
       const isExists = await this.findUserInTeam(
         teamUserData.team_id,
@@ -97,6 +99,8 @@ export class TeamService {
         teamUserData as unknown as TeamUser,
       );
       await this.teamUserRepository.save(teamUser);
+
+      await this.notificationService.addOrRemoveToTeam(pmOrAdminId,'Add',teamUserData.user_id,teamUserData.team_id,projectName)
       return teamUser;
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -116,7 +120,7 @@ export class TeamService {
     }
   }
 
-  async removeUserFromTeam(teamUserData: CreateTeamUserDto) {
+  async removeUserFromTeam(teamUserData: CreateTeamUserDto,pmOrAdminId:number,projectName:string) {
     try {
       const deletedUser = await this.teamUserRepository
         .createQueryBuilder('')
@@ -126,6 +130,8 @@ export class TeamService {
         .execute();
       if (deletedUser.affected === 0)
         throw new Error('User does not exists in this team');
+      
+      await this.notificationService.addOrRemoveToTeam(pmOrAdminId,'Add',teamUserData.user_id,teamUserData.team_id,projectName)
     } catch (error) {
       throw new BadRequestException(error.message);
     }
