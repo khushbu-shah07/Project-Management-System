@@ -22,13 +22,20 @@ import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { UsersService } from 'src/users/users.service';
 import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
 import { UserInDepartment } from 'src/notification/serviceBasedEmail/userInDepartment';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
+@ApiTags('Department')
+@ApiBearerAuth()
 @Controller('departments')
 export class DepartmentController {
   constructor(private readonly departmentService: DepartmentService , private readonly usersService: UsersService ) {}
 
   @UseGuards(AuthGuard, AdminGuard)
   @Post()
+  @ApiOperation({summary:'create department'})
+  @ApiCreatedResponse({description:'Department created'})
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async create(
     @Body() createDepartmentDto: CreateDepartmentDto,
     @Req() req: Request,
@@ -50,6 +57,10 @@ export class DepartmentController {
   }
 
   @Get()
+  @ApiOperation({summary:'Get all departments'})
+  @ApiResponse({description:'List all departments'})
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async findAll(@Req() req: Request, @Res() res: Response) {
     try {
       const departments = await this.departmentService.findAll();
@@ -66,6 +77,10 @@ export class DepartmentController {
   }
 
   @Get(':id')
+  @ApiOperation({summary:'Get department from id'})
+  @ApiResponse({description:'Get single department'})
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async findOne(
     @Param('id') id: string,
     @Req() req: Request,
@@ -87,6 +102,10 @@ export class DepartmentController {
 
   @UseGuards(AuthGuard, AdminGuard)
   @Patch(':id')
+  @ApiOperation({summary:'update department'})
+  @ApiResponse({description:'updates a department'})
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async update(
     @Param('id') id: string,
     @Body() updateDepartmentDto: UpdateDepartmentDto,
@@ -109,6 +128,10 @@ export class DepartmentController {
 
   @UseGuards(AuthGuard, AdminGuard)
   @Delete('/users')
+  @ApiOperation({summary:'remove user from department'})
+  @ApiResponse({description:'removes a user from department'})
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async removeUserFromDepartment(
     @Body() departmentUserData: CreateDepartmentUserDto,
     @Req() req: Request,
@@ -134,6 +157,10 @@ export class DepartmentController {
 
   @UseGuards(AuthGuard, AdminGuard)
   @Post('/users')
+  @ApiOperation({summary:'add user from department'})
+  @ApiResponse({description:'adds a user from department'})
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async addUserToDepartment(
     @Body() departmentUserData: CreateDepartmentUserDto,
     @Req() req: Request,
@@ -160,6 +187,10 @@ export class DepartmentController {
   }
 
   @Get('/:id/users')
+  @ApiOperation({summary:'get users from department'})
+  @ApiResponse({description:'get users from department'})
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async getDepartmentUsers(
     @Param('id') id: string,
     @Req() req: Request,
@@ -182,6 +213,10 @@ export class DepartmentController {
 
   @UseGuards(AuthGuard, AdminGuard)
   @Delete(':id')
+  @ApiOperation({summary:'Delete department'})
+  @ApiResponse({description:'deletes a department'})
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async remove(
     @Param('id') id: string,
     @Req() req: Request,
