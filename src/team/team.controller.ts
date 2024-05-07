@@ -29,7 +29,10 @@ import { UserInTeam } from 'src/notification/serviceBasedEmail/userInTeam';
 import { TaskUser } from 'src/task/entities/task-user.entity';
 import { UserprojectService } from 'src/userproject/userproject.service';
 import { UsersService } from 'src/users/users.service';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
+@ApiTags('Teams')
+@ApiBearerAuth()
 @Controller('team')
 export class TeamController {
   constructor(
@@ -41,6 +44,11 @@ export class TeamController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post()
+  @ApiOperation({ summary: 'Create team' })
+  @ApiCreatedResponse({ description: 'team created' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async create(
     @Body() createTeamDto: CreateTeamDto,
     @Req() req: Request,
@@ -91,6 +99,11 @@ export class TeamController {
   // Listing of all teams => data would be all teamIds 
   @UseGuards(AuthGuard, AdminGuard)
   @Get()
+  @ApiOperation({ summary: 'Get all teams' })
+  @ApiResponse({ description: 'List of teams' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async findAll(@Req() req: Request, @Res() res: Response) {
     try {
       const teams = await this.teamService.findAll();
@@ -109,6 +122,11 @@ export class TeamController {
   // removing user from teams -- correction remaining
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete('/users')
+  @ApiOperation({ summary: 'Remove user from team' })
+  @ApiResponse({ description: 'Delets a user from team' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async removeUserFromTeam(
     @Body() teamUserData: CreateTeamUserDto,
     @Req() req: Request,
@@ -140,6 +158,11 @@ export class TeamController {
   // Retrives a single team  --> doubt
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Get(':id')
+  @ApiOperation({ summary: 'Get team by id' })
+  @ApiResponse({ description: 'Returns single team' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async findOne(
     @Param('id') id: string,
     @Req() req: Request,
@@ -173,6 +196,11 @@ export class TeamController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Patch(':id')
+  @ApiOperation({ summary: 'Update team' })
+  @ApiResponse({ description: 'Updates team details' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async update(
     @Param('id') id: string,
     @Body() updateTeamDto: UpdateTeamDto,
@@ -206,6 +234,11 @@ export class TeamController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete team' })
+  @ApiResponse({ description: 'Deletes a team' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async remove(
     @Param('id') id: string,
     @Req() req: Request,
@@ -239,6 +272,11 @@ export class TeamController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Post('/users')
+  @ApiOperation({ summary: 'Add user to team' })
+  @ApiResponse({ description: 'Adds a user to a team' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async addUserToTeam(
     @Body() teamUserData: CreateTeamUserDto,
     @Req() req: Request,
@@ -268,6 +306,11 @@ export class TeamController {
 
   @UseGuards(AuthGuard, AdminProjectGuard)
   @Get('/users/:id')
+  @ApiOperation({ summary: 'Get all users in team' })
+  @ApiResponse({ description: 'List of users in a team' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid bearer token' })
+  @ApiForbiddenResponse({ description: 'Forbidden exception' })
+  @ApiBadRequestResponse({ description: 'Badrequest exception' })
   async getAllTeamUser(
     @Param('id') id: string,
     @Req() req: Request,
