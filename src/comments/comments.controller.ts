@@ -3,15 +3,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res, NotFoundEx
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { AdminGuard } from 'src/auth/Guards/admin.guard';
-import { TaskService } from 'src/task/task.service';
-import { UserComment } from 'src/notification/serviceBasedEmail/userHasComment';
-import { UsersService } from 'src/users/users.service';
-import { ProjectService } from 'src/project/project.service';
+import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
+import { AuthGuard } from '../../src/auth/Guards/auth.guard';
+import { AdminGuard } from '../../src/auth/Guards/admin.guard';
+import { TaskService } from '../../src/task/task.service';
+import { UserComment } from '../../src/notification/serviceBasedEmail/userHasComment';
+import { UsersService } from '../../src/users/users.service';
+import { ProjectService } from '../../src/project/project.service';
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { Comment } from './entities/comment.entity';
 
 @ApiTags('Comments')
 @ApiBearerAuth()

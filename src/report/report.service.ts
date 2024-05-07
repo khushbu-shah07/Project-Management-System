@@ -2,9 +2,9 @@ import { TimeTrackingService } from './../time-tracking/time-tracking.service';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
-import { ProjectService } from 'src/project/project.service';
-import { TaskService } from 'src/task/task.service';
-import { UserprojectService } from 'src/userproject/userproject.service';
+import { ProjectService } from '../../src/project/project.service';
+import { TaskService } from '../../src/task/task.service';
+import { UserprojectService } from '../../src/userproject/userproject.service';
 
 @Injectable()
 export class ReportService {

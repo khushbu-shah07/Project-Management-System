@@ -4,7 +4,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt'
 import { SignInDto } from './auth.dto';
-import { httpStatusCodes } from 'utils/sendresponse';
+import { httpStatusCodes } from '../../utils/sendresponse';
 
 @Injectable()
 export class AuthService {

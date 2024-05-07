@@ -2,8 +2,8 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, HttpException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { UsersService } from 'src/users/users.service';
-import { httpStatusCodes } from 'utils/sendresponse';
+import { UsersService } from '../../../src/users/users.service';
+import { httpStatusCodes } from '../../../utils/sendresponse';
 // import { config } from 'dotenv';
 // config()
 

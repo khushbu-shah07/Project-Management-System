@@ -1,4 +1,4 @@
-import { mailSender } from 'utils/mailSender';
+import { mailSender } from '../../../utils/mailSender';
 import { sendNotifyEmailTemplate } from './sendNotifyEmailTemplate';
 
 async function sendNotifyEmail(

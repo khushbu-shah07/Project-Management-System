@@ -21,12 +21,12 @@ import { UserprojectService } from './userproject.service';
 import { CreateUserprojectDto } from './dto/create-userproject.dto';
 import { UpdateUserprojectDto } from './dto/update-userproject.dto';
 import { Request, Response } from 'express';
-import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
-import { ProjectService } from 'src/project/project.service';
-import sendNotifyEmail from 'src/notification/Email/sendNotifyMail';
-import { UsersService } from 'src/users/users.service';
+import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
+import { AuthGuard } from '../../src/auth/Guards/auth.guard';
+import { AdminProjectGuard } from '../../src/auth/Guards/adminProject.guard';
+import { ProjectService } from '../../src/project/project.service';
+import sendNotifyEmail from '../../src/notification/Email/sendNotifyMail';
+import { UsersService } from '../../src/users/users.service';
 
 @Controller('userproject')
 export class UserprojectController {

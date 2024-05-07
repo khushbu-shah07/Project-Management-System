@@ -2,7 +2,7 @@
 import { Body, Controller, HttpException, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './auth.dto';
-import { httpStatusCodes } from 'utils/sendresponse';
+import { httpStatusCodes } from '../../utils/sendresponse';
 
 import { ApiBody, ApiCreatedResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 @ApiTags('Users')

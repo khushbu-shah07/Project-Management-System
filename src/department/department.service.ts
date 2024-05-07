@@ -6,7 +6,7 @@ import { DepartmentUser } from './entities/department-user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateDepartmentUserDto } from './dto/create-department-user.dto';
-import { httpStatusCodes } from 'utils/sendresponse';
+import { httpStatusCodes } from '../../utils/sendresponse';
 
 @Injectable()
 export class DepartmentService {

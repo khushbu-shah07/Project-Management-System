@@ -18,17 +18,16 @@ import {
 import { TeamService } from './team.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
-import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
+import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
 import { Request, Response } from 'express';
-import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { AdminGuard } from 'src/auth/Guards/admin.guard';
+import { AdminProjectGuard } from '../../src/auth/Guards/adminProject.guard';
+import { AuthGuard } from '../../src/auth/Guards/auth.guard';
+import { AdminGuard } from '../../src/auth/Guards/admin.guard';
 import { CreateTeamUserDto } from './dto/create-team-user.dto';
 import { ProjectService } from '../project/project.service'
-import { UserInTeam } from 'src/notification/serviceBasedEmail/userInTeam';
-import { TaskUser } from 'src/task/entities/task-user.entity';
-import { UserprojectService } from 'src/userproject/userproject.service';
-import { UsersService } from 'src/users/users.service';
+import { UserInTeam } from '../../src/notification/serviceBasedEmail/userInTeam';
+import { UserprojectService } from '../../src/userproject/userproject.service';
+import { UsersService } from '../../src/users/users.service';
 
 @Controller('team')
 export class TeamController {

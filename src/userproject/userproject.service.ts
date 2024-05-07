@@ -10,7 +10,7 @@ import { UpdateUserprojectDto } from './dto/update-userproject.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Userproject } from './entities/user-project.entity';
 import { Repository } from 'typeorm';
-import { httpStatusCodes } from 'utils/sendresponse';
+import { httpStatusCodes } from '../../utils/sendresponse';
 
 @Injectable()
 export class UserprojectService {

@@ -1,19 +1,15 @@
 import {
-  BadRequestException,
   HttpException,
   Injectable,
   NotFoundException,
-  InternalServerErrorException,
   ForbiddenException,
 } from '@nestjs/common';
 import { CreateTimeTrackingDto } from './dto/create-time-tracking.dto';
 import { UpdateTimeTrackingDto } from './dto/update-time-tracking.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TaskHour } from './entities/time-tracking.entity';
-import { DataSource, Repository, getConnection } from 'typeorm';
-import { httpStatusCodes } from 'utils/sendresponse';
-import { TaskUser } from 'src/task/entities/task-user.entity';
-import dataSource, { dataSourceOptions } from 'db/data-source';
+import { Repository } from 'typeorm';
+import { httpStatusCodes } from '../../utils/sendresponse';
 
 @Injectable()
 export class TimeTrackingService {

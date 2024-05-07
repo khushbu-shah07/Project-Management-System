@@ -2,14 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Res,
 import { TimeTrackingService } from './time-tracking.service';
 import { CreateTimeTrackingDto } from './dto/create-time-tracking.dto';
 import { UpdateTimeTrackingDto } from './dto/update-time-tracking.dto';
-import { TaskService } from 'src/task/task.service';
-import { ProjectService } from 'src/project/project.service';
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
-import { TaskStatus } from 'src/task/entities/task.entity';
-import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
-import { AdminGuard } from 'src/auth/Guards/admin.guard';
-import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
+import { TaskService } from '../../src/task/task.service';
+import { ProjectService } from '../../src/project/project.service';
+import { AuthGuard } from '../../src/auth/Guards/auth.guard';
+import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
+import { TaskStatus } from '../../src/task/entities/task.entity';
+import { ProjectManagerGuard } from '../../src/auth/Guards/pm.guard';
+import { AdminGuard } from '../../src/auth/Guards/admin.guard';
+import { AdminProjectGuard } from '../../src/auth/Guards/adminProject.guard';
 import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 

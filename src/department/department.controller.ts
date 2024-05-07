@@ -14,13 +14,13 @@ import {
 import { DepartmentService } from './department.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
-import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
+import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
 import { Request, Response } from 'express';
 import { CreateDepartmentUserDto } from './dto/create-department-user.dto';
-import { AdminGuard } from 'src/auth/Guards/admin.guard';
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { UsersService } from 'src/users/users.service';
-import { UserInDepartment } from 'src/notification/serviceBasedEmail/userInDepartment';
+import { AdminGuard } from '../../src/auth/Guards/admin.guard';
+import { AuthGuard } from '../../src/auth/Guards/auth.guard';
+import { UsersService } from '../../src/users/users.service';
+import { UserInDepartment } from '../../src/notification/serviceBasedEmail/userInDepartment';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger'
 
 @ApiTags('Departments')

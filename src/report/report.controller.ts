@@ -1,10 +1,10 @@
 import { Controller, Get, Param, HttpException, Req, Res, ForbiddenException, UseGuards, BadRequestException } from '@nestjs/common';
 import { ReportService } from './report.service';
-import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
+import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
 import { Request, Response } from 'express';
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
-import { ProjectService } from 'src/project/project.service';
+import { AuthGuard } from '../../src/auth/Guards/auth.guard';
+import { AdminProjectGuard } from '../../src/auth/Guards/adminProject.guard';
+import { ProjectService } from '../../src/project/project.service';
 
 @Controller('projects')
 export class ReportController {

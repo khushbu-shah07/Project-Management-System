@@ -4,19 +4,19 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Request } from 'express';
 import { Response } from 'express';
-import { AuthGuard } from 'src/auth/Guards/auth.guard';
-import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
-import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
+import { AuthGuard } from '../../src/auth/Guards/auth.guard';
+import { AdminProjectGuard } from '../../src/auth/Guards/adminProject.guard';
+import { httpStatusCodes, sendResponse } from '../../utils/sendresponse';
 import { Task, TaskPriority } from './entities/task.entity';
 import { ProjectService } from '../project/project.service'
-import { StartDateValidationPipe } from 'src/Pipes/startDatePipe';
-import { EndDateValidationPipe } from 'src/Pipes/endDatePipe';
-import { AdminGuard } from 'src/auth/Guards/admin.guard';
+import { StartDateValidationPipe } from '../../src/Pipes/startDatePipe';
+import { EndDateValidationPipe } from '../../src/Pipes/endDatePipe';
+import { AdminGuard } from '../../src/auth/Guards/admin.guard';
 import { CreateTaskUserDto } from './dto/create-task-user.dto';
 import { UserprojectService } from '../userproject/userproject.service'
 import { UsersService } from '../users/users.service'
-import { UserHasTask } from 'src/notification/serviceBasedEmail/userHasTask';
-import { TaskStatus } from 'src/notification/serviceBasedEmail/TaskStatusUpdate';
+import { UserHasTask } from '../../src/notification/serviceBasedEmail/userHasTask';
+import { TaskStatus } from '../../src/notification/serviceBasedEmail/TaskStatusUpdate';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOperation, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 @ApiTags('Tasks')
