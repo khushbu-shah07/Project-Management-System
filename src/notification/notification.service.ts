@@ -42,6 +42,7 @@ export class NotificationService {
                 `Project status is ${statusOfProject}`,
                 'None',
                 projectName,
+                'project'
               );
             } catch (error) {
               console.error(
@@ -57,7 +58,6 @@ export class NotificationService {
   }
 
   async TaskStatusUpdate(pmEmail: string, taskId: number, taskStatus: string) {
-    console.log('inside notify');
     try {
       const userEmailsInTask = await this.taskService.getUsersInTask(taskId);
       console.log(userEmailsInTask);
@@ -78,6 +78,7 @@ export class NotificationService {
             `the task has been ${taskStatus}`,
             taskTitle,
             projectName,
+            'taskstatus'
           );
         } catch (error) {
           console.error('error while sending mails to users');
@@ -107,6 +108,7 @@ export class NotificationService {
         `You have been ${typeOfOperation} to task`,
         `${taskTitle}`,
         `${projectName}`,
+        'taskuser'
       );
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -138,6 +140,7 @@ export class NotificationService {
             `the comment has been ${commentStatus} `,
             taskTitle,
             projectName,
+            'comment'
           );
         } catch (error) {
           console.error('error while sending mails to users');
@@ -165,6 +168,7 @@ export class NotificationService {
         `You have been ${typeOfOperation} to the department`,
         'None',
         'None',
+        'department'
       );
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -176,11 +180,10 @@ export class NotificationService {
         const pmOrAdminDetail =await this.usersService.findOne(pmOrAdminId);
         let adminEmail = pmOrAdminDetail.email;
 
-
          const user = await this.usersService.findOne(userId);
          const userEmail =user.email;
 
-         sendNotifyEmail(adminEmail,userEmail,`You have been ${typeOfOperation} to the team`,'None',`${projectName}`)
+         sendNotifyEmail(adminEmail,userEmail,`You have been ${typeOfOperation} to the team`,'None',`${projectName}`,'team')
 
          
     } catch (error) {

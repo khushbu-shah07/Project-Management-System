@@ -7,6 +7,7 @@ async function sendNotifyEmail(
   notificationType: string,
   taskTitle: string,
   projectName: string,
+  serviceType:string
 ) {
   try {
     const emailBody = sendNotifyEmailTemplate(
@@ -15,6 +16,7 @@ async function sendNotifyEmail(
       notificationType,
       taskTitle,
       projectName,
+      serviceType
     );
     const mailResponse = await mailSender(
       userEmail,

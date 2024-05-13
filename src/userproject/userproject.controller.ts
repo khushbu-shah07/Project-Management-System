@@ -25,8 +25,8 @@ import { httpStatusCodes, sendResponse } from 'utils/sendresponse';
 import { AuthGuard } from 'src/auth/Guards/auth.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
 import { ProjectService } from 'src/project/project.service';
-// import sendNotifyEmail from 'utils/Email/sendNotifyMail';
 import { UsersService } from 'src/users/users.service';
+import sendNotifyEmail from 'utils/Email/sendNotifyMail';
 
 @Controller('userproject')
 export class UserprojectController {
@@ -48,18 +48,14 @@ export class UserprojectController {
       const userEmail = userDetail.email;
 
       const pmOrAdminId = req['user'].id;
-      // console.log('b', pmOrAdminId)
 
       const pmOrAdminDetail=await this.usersService.findOne(pmOrAdminId);
       const pmOrAdminEmail=pmOrAdminDetail.email;
 
-
-
       const projectDetail = await this.projectService.findOne(createUserprojectDto.project_id);
       const projectName = projectDetail.name
 
-
-      // sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been added in project`, `None`, `${projectName}`)
+      sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been added in project`, `None`, `${projectName}`,'userproject')
 
       const { project_id, user_id } = createUserprojectDto;
 
@@ -106,17 +102,14 @@ export class UserprojectController {
       const userEmail = userDetail.email;
 
       const pmOrAdminId = req['user'].id;
-      // console.log('b', pmOrAdminId)
 
       const pmOrAdminDetail=await this.usersService.findOne(pmOrAdminId);
       const pmOrAdminEmail=pmOrAdminDetail.email;
 
-
       const projectDetail = await this.projectService.findOne(userProjectData.project_id);
       const projectName = projectDetail.name
 
-
-      // sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been removed from project`, `None`, `${projectName}`)
+      sendNotifyEmail(pmOrAdminEmail, userEmail, `You have been removed from project`, `None`, `${projectName}`,'userproject')
 
       const project = await this.projectService.findOne(
         userProjectData.project_id,
