@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Res, BadRequestException, HttpException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Res, BadRequestException, HttpException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { TimeTrackingService } from './time-tracking.service';
 import { CreateTimeTrackingDto } from './dto/create-time-tracking.dto';
 import { UpdateTimeTrackingDto } from './dto/update-time-tracking.dto';
@@ -10,8 +10,12 @@ import { TaskStatus } from 'src/task/entities/task.entity';
 import { ProjectManagerGuard } from 'src/auth/Guards/pm.guard';
 import { AdminGuard } from 'src/auth/Guards/admin.guard';
 import { AdminProjectGuard } from 'src/auth/Guards/adminProject.guard';
+import { ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse, ApiOkResponse, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
 
+@ApiTags('Task Logs')
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({description:"Missing or invalid token."})
 @UseGuards(AuthGuard)
 @Controller('taskHours/')
 export class TimeTrackingController {
@@ -19,6 +23,8 @@ export class TimeTrackingController {
   constructor(private readonly timeTrackingService: TimeTrackingService,private readonly taskService:TaskService,private readonly projectService:ProjectService) {}
 
   @Post()
+  @ApiCreatedResponse({description:"Log added."})
+  @ApiForbiddenResponse({description:"Only employee can add log on their tasks."})
   async create(@Body() createTimeTrackingDto: CreateTimeTrackingDto,@Req() req,@Res() res) {
     if(req.user.role!=='employee'){
       throw new BadRequestException("Access denied.");
@@ -29,10 +35,11 @@ export class TimeTrackingController {
       
       const taskUser=await this.taskService.findTaskUserRow(task_id,req.user.id);
       if(!taskUser){
-        throw new Error("Task is not assigned to you.");
+        throw new ForbiddenException("Task is not assigned to you.");
       }
       
       const task=await this.taskService.findOne(task_id);
+      
       if(task.status===TaskStatus.COMPLETED)
         throw new Error("Task is complemented so cannot add time log.")
       
@@ -47,21 +54,25 @@ export class TimeTrackingController {
   }
 
   @Get('my')
+  @ApiOkResponse({description:"List of your logs."})
+  @ApiForbiddenResponse({description:"Only employee can get logs of their task."})
   async getMyLogs(@Req() req,@Res() res){
     try{
       if(req.user.role!=='employee'){
-        throw new Error("Only employees has access.")
+        throw new ForbiddenException("Only employees has access.")
       }
 
       const result=await this.timeTrackingService.getLogsByEmp(+req.user.id);
       sendResponse(res,httpStatusCodes.OK,'ok','Get your logs',result)
     }
     catch(err){
-      throw new BadRequestException(err.message)
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
   @Get('/:taskId')
+  @ApiOkResponse({description:"List of logs on a task."})
+  @ApiForbiddenResponse({description:"Task is of others."})
   async getByTask(@Param('taskId') task_id:number,@Req() req,@Res() res){
     try{
       if(req.user.role==='employee'){
@@ -69,14 +80,14 @@ export class TimeTrackingController {
         const hasTask=await this.taskService.findTaskUser(task_id,req.user.id);
         console.log(hasTask)
         if(!hasTask){
-          throw new Error("Task is not assigned to you.");
+          throw new ForbiddenException("Task is not assigned to you.");
         }
       }
 
       if(req.user.role==='pm'){
         const hasTask= await this.taskService.taskBelongsToPM(task_id,req.user.id);
         if(!hasTask){
-          throw new Error("Task is not of your project.");
+          throw new ForbiddenException("Task is not of your project.");
         }
       }
 
@@ -91,16 +102,18 @@ export class TimeTrackingController {
 
   @UseGuards(ProjectManagerGuard)
   @Get('/project/:project_id')
+  @ApiOkResponse({description:"List of logs of a project."})
+  @ApiForbiddenResponse({description:"Project is of others."})
   async getLogsOfProject(@Param('project_id') project_id:number,@Req() req,@Res() res){
     console.log(req.user.id)
     try{
       const project=await this.projectService.findOne(project_id);
       console.log("P",project)
       if(!project){
-        throw new Error("Invalid project id.")
+        throw new NotFoundException("Invalid project id.")
       }
       if(project.pm_id.id!==req.user.id){
-        throw new Error("This project is not yours.")
+        throw new ForbiddenException("This project is not yours.")
       }
 
       const result=await this.timeTrackingService.getByProject(project_id);
@@ -114,6 +127,8 @@ export class TimeTrackingController {
 
   @UseGuards(AdminGuard)
   @Get()
+  @ApiOkResponse({description:"List of all logs."})
+  @ApiForbiddenResponse({description:"Only admin has access."})
   findAll(@Req() req,@Res() res) {
     try{
       const result = this.timeTrackingService.findAll();
@@ -125,6 +140,8 @@ export class TimeTrackingController {
   }
 
   @Patch('/taskHours/:id')
+  @ApiOkResponse({description:"Log updated."})
+  @ApiForbiddenResponse({description:"Log is of others."})
   async update(
     @Param('id') id: number,
     @Body() updateTimeTrackingDto: UpdateTimeTrackingDto,
@@ -149,15 +166,17 @@ export class TimeTrackingController {
         httpStatusCodes.OK,
         'success',
         'Updated timetrack details',
-        updatedData,
+        {updatedLog:updatedData},
       );
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (err) {
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
   @UseGuards(AdminProjectGuard)
   @Get('/taskHours/emp/:userId')
+  @ApiOkResponse({description:"List of logs by a employee."})
+  @ApiForbiddenResponse({description:"Forbidden"})
   async getUserTimeLogs(
     @Param('userId') userId: number,
     @Req() req: Request,
@@ -173,8 +192,8 @@ export class TimeTrackingController {
         'Get log hours of user',
         data,
       );
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (err) {
+      throw new HttpException(err.message,err.status || httpStatusCodes['Bad Request'])
     }
   }
 
