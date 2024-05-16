@@ -33,13 +33,13 @@ export class ReportController {
 
       const projectReport = await this.reportService.generateReport(+id);
 
-      return sendResponse(
-        res,
-        httpStatusCodes.OK,
-        'success',
-        'Generate Project Report',
-        projectReport
-      )
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename=report.pdf',
+        'Content-Length': projectReport.length,
+      });
+
+      res.end(projectReport);
     } catch (error) {
       throw new HttpException(error.message, error.status || httpStatusCodes['Bad Request'])
     }
