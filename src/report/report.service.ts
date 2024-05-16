@@ -137,7 +137,7 @@ export class ReportService {
             Actual_end_date: project.actualEndDate ? project.actualEndDate.toDateString() : 'Project is currently in progress',
             Work_done: {
               By_task: taskTimeLine.result,
-              Total_hours: taskTimeLine.total_hours,
+              Total_hours: taskTimeLine.totalHours,
             }
           },
           Status: project.status,

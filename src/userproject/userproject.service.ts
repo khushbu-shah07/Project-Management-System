@@ -55,12 +55,6 @@ export class UserprojectService {
         where: { project_id: { id: projectId } },
         relations: ['user_id'],
       });
-      if(users.length === 0) {
-        throw new NotFoundException({
-          message: 'Currently, no employees are assigned to this project',
-          statusCode: httpStatusCodes['Not Found'],
-        });
-      }
       const mappedUsers = users.map((user) => ({
         id: user.id,
         user_detail: {

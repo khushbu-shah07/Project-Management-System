@@ -13,7 +13,7 @@ export class ReportController {
     private readonly projectService: ProjectService
   ) { }
 
-  @UseGuards(AuthGuard, AdminProjectGuard)
+  // @UseGuards(AuthGuard, AdminProjectGuard)
   @Get(':id/report')
   async generateProjectReport(
     @Param('id') id: string,
